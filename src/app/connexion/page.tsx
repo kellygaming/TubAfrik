@@ -9,7 +9,7 @@ import { GoogleButton } from "./GoogleButton";
 export const metadata: Metadata = { title: "Connexion" };
 
 // La photo de fond: un collage de gamers africains (voir docs/prompt-collage.md).
-// Tant qu'elle manque, le motif de bandes kente prend le relais.
+// Son tiers bas est déjà noir: le texte s'y pose sans voile épais.
 const COLLAGE = "/connexion/collage.webp";
 const FEATURED = ["free-fire", "efootball", "codm", "pubg-mobile", "ea-fc"];
 
@@ -24,13 +24,14 @@ export default async function LoginPage({ searchParams }: PageProps<"/connexion"
   return (
     <main className="relative min-h-dvh bg-bg lg:grid lg:grid-cols-[minmax(0,1fr)_480px]">
       {/* ── Le collage: plein écran sur téléphone, panneau de gauche sur ordinateur ── */}
-      <div aria-hidden className="kente-fallback absolute inset-0 lg:relative">
+      <div aria-hidden className="absolute inset-0 overflow-hidden bg-bg lg:relative">
+        {/* Téléphone: le collage calé en haut. Ordinateur: entier, centré dans son panneau. */}
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover bg-top lg:inset-auto lg:top-0 lg:left-1/2 lg:aspect-[941/1672] lg:h-full lg:-translate-x-1/2 lg:[mask-image:linear-gradient(to_right,transparent,black_14%,black_86%,transparent)]"
           style={{ backgroundImage: `url(${COLLAGE})` }}
         />
-        {/* Voile sombre pour que le texte reste lisible, quelle que soit la photo */}
-        <div className="absolute inset-0 bg-gradient-to-b from-bg/30 via-bg/50 to-bg lg:bg-gradient-to-r lg:from-transparent lg:via-transparent lg:to-bg/80" />
+        {/* Fondu vers le noir là où se posent le titre et le bouton */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-bg/85 via-38% to-bg to-55% lg:hidden" />
       </div>
 
       {/* ── Le contenu, ancré en bas sur téléphone (là où passe le pouce) ── */}
