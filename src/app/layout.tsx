@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit } from "next/font/google";
+import { Outfit, Unbounded } from "next/font/google";
 import { SITE_URL } from "@/lib/format";
 import { getSession } from "@/lib/session";
 import { SessionProvider } from "@/components/session";
 import "./globals.css";
 
 const outfit = Outfit({ variable: "--font-outfit", subsets: ["latin"], display: "swap" });
+// Titres et logo: une grotesque large et ronde, l'énergie d'un écran de jeu sans le néon.
+const unbounded = Unbounded({ variable: "--font-unbounded", subsets: ["latin"], weight: ["600", "800"], display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -18,7 +20,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#07070b",
+  themeColor: "#0d0a08",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -27,7 +29,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const { user, profile } = await getSession();
   return (
-    <html lang="fr" className={`${outfit.variable} h-full antialiased`}>
+    <html lang="fr" className={`${outfit.variable} ${unbounded.variable} h-full antialiased`}>
       <body className="min-h-full">
         {/* La clé remonte le fournisseur quand on se connecte ou crée son profil. */}
         <SessionProvider key={profile?.username ?? user?.id ?? "invite"} initial={{ userId: user?.id ?? null, profile }}>

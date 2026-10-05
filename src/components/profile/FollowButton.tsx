@@ -30,7 +30,7 @@ export function FollowButton({ profileId, initialFollowing }: { profileId: strin
       onClick={toggle}
       disabled={busy}
       className={`w-full rounded-full py-2.5 text-sm font-semibold transition active:scale-[0.98] ${
-        following ? "border border-line bg-surface text-text" : "bg-gradient-brand text-bg"
+        following ? "border border-line bg-surface text-text" : "bg-brand text-bg"
       }`}
     >
       {following ? "Abonné ✓" : "S'abonner"}

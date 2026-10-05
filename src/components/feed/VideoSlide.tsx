@@ -191,7 +191,7 @@ export function VideoSlide(props: Props) {
             <button
               onClick={props.onFollow}
               aria-label={`S'abonner à ${item.display_name}`}
-              className="bg-gradient-brand absolute -bottom-2.5 left-1/2 grid h-6 w-6 -translate-x-1/2 place-items-center rounded-full text-bg"
+              className="bg-brand absolute -bottom-2.5 left-1/2 grid h-6 w-6 -translate-x-1/2 place-items-center rounded-full text-bg"
             >
               <PlusIcon width={14} height={14} />
             </button>

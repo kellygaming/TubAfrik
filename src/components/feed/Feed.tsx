@@ -8,6 +8,7 @@ import type { FeedItem } from "@/lib/types";
 import { GAMES } from "@/lib/games";
 import { loginHref, useSession } from "../session";
 import { LeafIcon } from "../icons";
+import { LogoMark } from "../Logo";
 import { VideoSlide } from "./VideoSlide";
 import { CommentsSheet } from "./CommentsSheet";
 import { ShareSheet } from "./ShareSheet";
@@ -199,7 +200,7 @@ export function Feed({
               <p className="text-4xl">🏁</p>
               <p className="mt-3 font-semibold">Tu as tout vu !</p>
               <p className="mt-1 text-sm text-muted">Reviens plus tard, ou publie ton propre clip.</p>
-              <Link href="/publier" className="bg-gradient-brand mt-5 inline-block rounded-full px-6 py-2.5 text-sm font-semibold text-bg">
+              <Link href="/publier" className="bg-brand mt-5 inline-block rounded-full px-6 py-2.5 text-sm font-semibold text-bg">
                 Publier une vidéo
               </Link>
             </div>
@@ -247,7 +248,7 @@ function FeedHeader({ mode, game, dataSaver }: { mode: FeedMode; game: string | 
   return (
     <header className="pt-safe pointer-events-none absolute inset-x-0 top-0 z-30 bg-gradient-to-b from-black/70 via-black/30 to-transparent pb-6">
       <div className="pointer-events-auto relative flex h-12 items-center justify-center gap-5 px-4">
-        <span className="text-gradient absolute left-4 text-lg font-extrabold tracking-tight">TubAfrik</span>
+        <span className="absolute left-4"><LogoMark size={28} /></span>
         {tab("abonnements", "Abonnements")}
         {tab("pour-toi", "Pour toi")}
         {dataSaver && (
@@ -303,7 +304,7 @@ function EmptyFeed({ mode, game, loggedIn }: { mode: FeedMode; game: string | nu
         </p>
         <Link
           href={followMode && !loggedIn ? "/connexion?next=/?mode=abonnements" : followMode ? "/" : "/publier"}
-          className="bg-gradient-brand mt-6 inline-block rounded-full px-6 py-2.5 text-sm font-semibold text-bg"
+          className="bg-brand mt-6 inline-block rounded-full px-6 py-2.5 text-sm font-semibold text-bg"
         >
           {followMode && !loggedIn ? "Se connecter" : followMode ? "Découvrir" : "Publier une vidéo"}
         </Link>

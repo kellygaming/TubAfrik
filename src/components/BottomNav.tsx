@@ -30,7 +30,7 @@ export function BottomNav({ overlay = false }: { overlay?: boolean }) {
         <Link
           href={userId ? "/publier" : "/connexion?next=/publier"}
           aria-label="Publier une vidéo"
-          className="bg-gradient-brand grid h-10 w-14 place-items-center rounded-xl text-bg shadow-[0_4px_20px_-4px] shadow-brand/60 transition active:scale-95"
+          className="bg-brand grid h-10 w-14 place-items-center rounded-xl text-bg transition active:scale-95"
         >
           <PlusIcon />
         </Link>

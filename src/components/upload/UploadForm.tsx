@@ -137,7 +137,7 @@ export function UploadForm({ username, defaultGame }: { username: string; defaul
           }}
           className="group flex aspect-[9/14] w-full flex-col items-center justify-center gap-4 rounded-3xl border-2 border-dashed border-white/15 bg-surface transition hover:border-brand/60"
         >
-          <span className="bg-gradient-brand grid h-16 w-16 place-items-center rounded-2xl text-bg shadow-lg shadow-brand/30 transition group-hover:scale-105">
+          <span className="bg-brand grid h-16 w-16 place-items-center rounded-2xl text-bg transition group-hover:scale-105">
             <UploadIcon width={30} height={30} />
           </span>
           <span className="text-lg font-semibold">Choisis ta vidéo</span>
@@ -161,7 +161,7 @@ export function UploadForm({ username, defaultGame }: { username: string; defaul
         <h2 className="mt-5 text-2xl font-bold">C&apos;est en ligne ! 🔥</h2>
         <p className="mt-2 text-muted">Partage-la sur WhatsApp pour lancer tes premières vues.</p>
         <div className="mt-8 flex w-full flex-col gap-3">
-          <Link href={`/v/${phase.id}`} className="bg-gradient-brand rounded-full py-3 font-semibold text-bg">Voir ma vidéo</Link>
+          <Link href={`/v/${phase.id}`} className="bg-brand rounded-full py-3 font-semibold text-bg">Voir ma vidéo</Link>
           <button onClick={reset} className="rounded-full border border-line py-3 text-sm">Publier une autre vidéo</button>
         </div>
       </div>
@@ -199,7 +199,7 @@ export function UploadForm({ username, defaultGame }: { username: string; defaul
               aria-pressed={game === g.slug}
               onClick={() => setGame(g.slug)}
               className={`rounded-full border px-3.5 py-1.5 text-sm transition ${
-                game === g.slug ? "bg-gradient-brand border-transparent font-semibold text-bg" : "border-line bg-surface hover:border-white/20"
+                game === g.slug ? "bg-brand border-transparent font-semibold text-bg" : "border-line bg-surface hover:border-white/20"
               }`}
             >
               {g.name}
@@ -224,7 +224,7 @@ export function UploadForm({ username, defaultGame }: { username: string; defaul
           <button
             onClick={publish}
             disabled={!game || (phase.step === "error" && !phase.retry)}
-            className="bg-gradient-brand flex-1 rounded-full py-3 font-semibold text-bg transition active:scale-[0.98] disabled:opacity-50"
+            className="bg-brand flex-1 rounded-full py-3 font-semibold text-bg transition active:scale-[0.98] disabled:opacity-50"
           >
             {phase.step === "error" ? "Réessayer" : "Publier"}
           </button>
@@ -239,7 +239,7 @@ function Progress({ label, pct, hint }: { label: string; pct: number; hint: stri
     <div className="rounded-2xl border border-line bg-surface p-4">
       <p className="text-sm font-medium">{label}</p>
       <div className="mt-3 h-2 overflow-hidden rounded-full bg-surface-2">
-        <div className="bg-gradient-brand h-full rounded-full transition-[width] duration-500" style={{ width: `${Math.max(pct, 3)}%` }} />
+        <div className="bg-brand h-full rounded-full transition-[width] duration-500" style={{ width: `${Math.max(pct, 3)}%` }} />
       </div>
       <p className="mt-3 text-xs text-muted">{hint}</p>
     </div>

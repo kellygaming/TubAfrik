@@ -120,7 +120,7 @@ export function CommentsSheet({
               maxLength={300}
               placeholder="Ajouter un commentaire…"
               aria-label="Ton commentaire"
-              className="h-10 flex-1 rounded-full bg-surface-2 px-4 text-sm outline-none placeholder:text-muted focus:ring-2 focus:ring-brand/60"
+              className="h-10 flex-1 rounded-full bg-surface-2 px-4 text-sm outline-none placeholder:text-muted focus:ring-2 focus:ring-brand/50"
             />
             <button
               disabled={!body.trim() || sending}
@@ -130,7 +130,7 @@ export function CommentsSheet({
             </button>
           </form>
         ) : (
-          <Link href={loginHref()} className="bg-gradient-brand block rounded-full py-2.5 text-center text-sm font-semibold text-bg">
+          <Link href={loginHref()} className="bg-brand block rounded-full py-2.5 text-center text-sm font-semibold text-bg">
             Connecte-toi pour commenter
           </Link>
         )}

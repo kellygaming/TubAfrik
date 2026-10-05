@@ -20,7 +20,7 @@ export default async function WelcomePage({ searchParams }: PageProps<"/bienvenu
   return (
     <main className="mx-auto min-h-dvh max-w-md px-5 pt-[calc(env(safe-area-inset-top)+32px)] pb-12">
       <h1 className="text-3xl font-extrabold tracking-tight">
-        Bienvenue sur <span className="text-gradient">TubAfrik</span> 👋
+        Bienvenue sur <span className="text-brand">TubAfrik</span> 👋
       </h1>
       <p className="mt-2 text-muted">Choisis comment la communauté va te reconnaître.</p>
       <div className="mt-8">

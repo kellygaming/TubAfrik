@@ -69,7 +69,6 @@ export default async function ProfilePage({ params }: PageProps<"/u/[username]">
   return (
     <main className="mx-auto min-h-dvh max-w-2xl pb-24">
       <header className="relative px-5 pt-[calc(env(safe-area-inset-top)+28px)] pb-6 text-center">
-        <div aria-hidden className="bg-gradient-brand absolute inset-x-0 top-0 h-28 opacity-20 blur-2xl" />
         <div className="relative flex flex-col items-center">
           <Avatar src={p.avatar_url} name={p.display_name} size={96} className="ring-4 ring-bg" />
           <h1 className="mt-3 text-xl font-bold">{p.display_name}</h1>
@@ -113,7 +112,7 @@ export default async function ProfilePage({ params }: PageProps<"/u/[username]">
           <p className="text-4xl">🎬</p>
           <p className="mt-3 font-semibold">{isSelf ? "Publie ta première vidéo" : "Pas encore de vidéo"}</p>
           {isSelf && (
-            <Link href="/publier" className="bg-gradient-brand mt-5 inline-block rounded-full px-6 py-2.5 text-sm font-semibold text-bg">
+            <Link href="/publier" className="bg-brand mt-5 inline-block rounded-full px-6 py-2.5 text-sm font-semibold text-bg">
               Publier
             </Link>
           )}

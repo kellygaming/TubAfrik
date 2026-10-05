@@ -117,7 +117,7 @@ export function ProfileForm({
                 aria-pressed={on}
                 onClick={() => set("main_game", on ? null : g.slug)}
                 className={`rounded-full border px-3.5 py-1.5 text-sm transition ${
-                  on ? "bg-gradient-brand border-transparent font-semibold text-bg" : "border-line bg-surface text-text/90 hover:border-white/20"
+                  on ? "bg-brand border-transparent font-semibold text-bg" : "border-line bg-surface text-text/90 hover:border-white/20"
                 }`}
               >
                 {g.name}
@@ -155,7 +155,7 @@ export function ProfileForm({
 
       {error && <p role="alert" className="rounded-xl bg-like/10 px-4 py-3 text-sm text-like">{error}</p>}
 
-      <button disabled={busy} className="bg-gradient-brand h-12 w-full rounded-full font-semibold text-bg transition active:scale-[0.98] disabled:opacity-60">
+      <button disabled={busy} className="bg-brand h-12 w-full rounded-full font-semibold text-bg transition active:scale-[0.98] disabled:opacity-60">
         {busy ? "Enregistrement…" : mode === "create" ? "C'est parti 🚀" : "Enregistrer"}
       </button>
     </form>
