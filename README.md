@@ -48,13 +48,17 @@ supabase/migrations/             Schéma SQL (tables tub_*, RLS, compteurs, fil)
 - **Modération** : au-delà de 5 signalements, une vidéo est masquée automatiquement
   jusqu'à décision sur `/admin`.
 
+## En ligne
+
+- **Site** : https://tubafrik.vercel.app (projet Vercel `tubafrik`, région Paris `cdg1`, au plus près de l'Afrique de l'Ouest)
+- **Base** : tables `tub_*` créées dans le projet Supabase `kelly-gaming` (migration `tubafrik_mvp`)
+
 ## Mise en route
 
 ### 1. Supabase
 
-1. Appliquer `supabase/migrations/0001_tubafrik_mvp.sql` sur le projet Kelly Gaming
-   (SQL Editor, ou `supabase db push`). Rien n'est modifié dans les tables existantes :
-   tout est préfixé `tub_`.
+1. ✅ Fait : `supabase/migrations/0001_tubafrik_mvp.sql` est appliquée sur le projet Kelly Gaming.
+   Rien n'est modifié dans les tables existantes : tout est préfixé `tub_`.
 2. **Authentication → URL Configuration → Redirect URLs** : ajouter
    `https://<domaine-tubafrik>/auth/callback` (et `http://localhost:3000/auth/callback`
    pour le développement). Le fournisseur Google est déjà configuré pour Kelly Gaming.
