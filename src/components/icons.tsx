@@ -1,0 +1,118 @@
+import type { SVGProps } from "react";
+
+// Jeu d'icônes maison: trait 2 px, coins ronds. Pas de bibliothèque
+// de 300 Ko pour une quinzaine de pictogrammes.
+type P = SVGProps<SVGSVGElement> & { filled?: boolean };
+
+const base = (props: P) => ({
+  width: 24,
+  height: 24,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 2,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+  "aria-hidden": true,
+  ...props,
+});
+
+export const HomeIcon = ({ filled, ...p }: P) => (
+  <svg {...base(p)} fill={filled ? "currentColor" : "none"}>
+    <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" />
+  </svg>
+);
+export const PlusIcon = (p: P) => (
+  <svg {...base(p)} strokeWidth={2.6}>
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+);
+export const UserIcon = ({ filled, ...p }: P) => (
+  <svg {...base(p)} fill={filled ? "currentColor" : "none"}>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 21a8 8 0 0 1 16 0" />
+  </svg>
+);
+export const HeartIcon = ({ filled, ...p }: P) => (
+  <svg {...base(p)} fill={filled ? "currentColor" : "none"}>
+    <path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 8 3.4 4.5 7 4.5c2.1 0 3.6 1.2 5 3 1.4-1.8 2.9-3 5-3 3.6 0 5.6 3.5 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2Z" />
+  </svg>
+);
+export const CommentIcon = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M21 11.5a8.4 8.4 0 0 1-12.3 7.5L3 20.5l1.6-5A8.4 8.4 0 1 1 21 11.5Z" />
+  </svg>
+);
+export const ShareIcon = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M14 4.5 21 11l-7 6.5V14c-5 0-8.5 1.5-11 5.5 1-5.5 4-10 11-11z" />
+  </svg>
+);
+export const MoreIcon = (p: P) => (
+  <svg {...base(p)} strokeWidth={3}>
+    <path d="M5 12h.01M12 12h.01M19 12h.01" />
+  </svg>
+);
+export const FlagIcon = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M5 21V4m0 0h11l-2 4 2 4H5" />
+  </svg>
+);
+export const TrashIcon = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
+  </svg>
+);
+export const VolumeOffIcon = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M11 5 6 9H3v6h3l5 4zM22 9l-6 6M16 9l6 6" />
+  </svg>
+);
+export const VolumeOnIcon = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M11 5 6 9H3v6h3l5 4zM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" />
+  </svg>
+);
+export const PlayIcon = (p: P) => (
+  <svg {...base(p)} fill="currentColor" stroke="none">
+    <path d="M8 5.5v13a1 1 0 0 0 1.5.9l10.3-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5Z" />
+  </svg>
+);
+export const CloseIcon = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M6 6l12 12M18 6 6 18" />
+  </svg>
+);
+export const LeafIcon = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M5 19c0-8 5-13 15-14-1 10-6 15-14 15M5 19l7-7" />
+  </svg>
+);
+export const UploadIcon = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M12 16V4m0 0-5 5m5-5 5 5M4 20h16" />
+  </svg>
+);
+export const WhatsAppIcon = (p: P) => (
+  <svg {...base(p)} fill="currentColor" stroke="none" viewBox="0 0 24 24">
+    <path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z" />
+  </svg>
+);
+export const LinkIcon = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />
+  </svg>
+);
+export const CheckIcon = (p: P) => (
+  <svg {...base(p)} strokeWidth={2.6}>
+    <path d="m5 12.5 4.5 4.5L19 7.5" />
+  </svg>
+);
+export const GoogleIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" width={20} height={20} aria-hidden {...p}>
+    <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.5a5.5 5.5 0 0 1-2.4 3.6v3h3.9c2.2-2.1 3.5-5.1 3.5-8.7Z" />
+    <path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1A12 12 0 0 0 12 24Z" />
+    <path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6h-4a12 12 0 0 0 0 10.8l4-3.1Z" />
+    <path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1c.9-2.8 3.6-4.9 6.7-4.9Z" />
+  </svg>
+);
