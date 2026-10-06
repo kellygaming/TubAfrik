@@ -71,8 +71,11 @@ export function tusCredentials(guid: string, ttlSeconds = 6 * 3600) {
 }
 
 // Traduit l'état Bunny en état TubAfrik. `null` = rien de nouveau.
+// Avec l'encodage JIT (Premium Encoding), Bunny rend la vidéo lisible
+// dès que les listes de lecture sont créées (statut 8), quelques
+// secondes après l'envoi, et finit d'encoder en arrière-plan.
 export function statusFromBunny(v: BunnyVideo): "processing" | "ready" | "failed" | null {
-  if (v.status === BUNNY_STATUS.FINISHED) return "ready";
+  if (v.status === BUNNY_STATUS.FINISHED || v.status === BUNNY_STATUS.JIT_PLAYLISTS_CREATED) return "ready";
   if (v.status === BUNNY_STATUS.ERROR || v.status === BUNNY_STATUS.UPLOAD_FAILED) return "failed";
   if (v.status === BUNNY_STATUS.CREATED) return null;
   return "processing";

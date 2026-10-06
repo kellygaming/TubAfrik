@@ -1,15 +1,16 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { deleteBunnyVideo, getBunnyVideo, statusFromBunny } from "@/lib/bunny";
+import { BUNNY_STATUS, deleteBunnyVideo, getBunnyVideo, statusFromBunny } from "@/lib/bunny";
 
 type VideoRef = { id: string; bunny_id: string; status?: string };
 
-const FINAL = new Set(["ready", "failed", "review", "removed"]);
+const FINAL = new Set(["failed", "review", "removed"]);
 
-// Recopie l'état Bunny dans tub_videos. Partagé par le webhook et par
-// la vérification que lance l'auteur depuis la page de publication.
+// Recopie l'état Bunny dans tub_videos. Partagé par le webhook, la tâche
+// planifiée et la vérification que lance l'auteur depuis la page de publication.
 export async function syncVideo(video: VideoRef) {
   if (video.status && FINAL.has(video.status)) return { status: video.status };
+  if (video.status === "ready") return refreshMetadata(video);
 
   const b = await getBunnyVideo(video.bunny_id);
   const status = statusFromBunny(b);
@@ -32,6 +33,25 @@ export async function syncVideo(video: VideoRef) {
     .eq("id", video.id).in("status", ["uploading", "processing"]);
 
   return { status, progress: b.encodeProgress ?? 0 };
+}
+
+// Une vidéo publiée en JIT n'a pas encore sa durée ni sa miniature
+// définitives: Bunny les donne à la fin de l'encodage complet, et le
+// webhook « terminé » nous ramène ici pour les compléter.
+async function refreshMetadata(video: VideoRef) {
+  const b = await getBunnyVideo(video.bunny_id);
+  if (b.status === BUNNY_STATUS.FINISHED) {
+    await supabaseAdmin()
+      .from("tub_videos")
+      .update({
+        duration_s: b.length || null,
+        width: b.width || null,
+        height: b.height || null,
+        thumbnail_file: b.thumbnailFileName || null,
+      })
+      .eq("id", video.id).eq("status", "ready");
+  }
+  return { status: "ready", progress: b.encodeProgress ?? 100 };
 }
 
 export async function removeVideo(video: VideoRef) {
