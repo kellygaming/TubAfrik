@@ -13,7 +13,7 @@ type Phase =
   | { step: "pick" }
   | { step: "edit" }
   | { step: "uploading"; pct: number }
-  | { step: "processing"; id: string; pct: number }
+  | { step: "processing"; id: string; pct: number; slow?: boolean }
   | { step: "done"; id: string }
   | { step: "error"; message: string; retry: boolean };
 
@@ -31,6 +31,11 @@ export function UploadForm({ username, defaultGame }: { username: string; defaul
   // vers la même vidéo au lieu d'en créer une nouvelle.
   const prepared = useRef<{ id: string; cred: Credentials } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const leaving = useRef(false);
+
+  useEffect(() => () => {
+    leaving.current = true;
+  }, []);
 
   useEffect(() => () => {
     if (preview) URL.revokeObjectURL(preview);
@@ -104,15 +109,20 @@ export function UploadForm({ username, defaultGame }: { username: string; defaul
     upload.start();
   }
 
-  // Bunny encode en plusieurs qualités: on interroge l'état jusqu'au bout.
+  // Bunny encode en plusieurs qualités: on interroge l'état jusqu'au bout,
+  // sans limite de temps. Toutes les 4 s au début, puis toutes les 10 s.
+  // Si on quitte la page, le serveur prend le relais (tâche planifiée
+  // /api/cron/sync-videos) et publie la vidéo dès que Bunny a fini.
   async function waitForEncoding(id: string) {
-    for (let i = 0; i < 150; i++) {
+    const start = Date.now();
+    while (!leaving.current) {
       const res = await fetch(`/api/videos/${id}/sync`, { method: "POST" }).catch(() => null);
       const s = (await res?.json().catch(() => null)) as { status?: string; progress?: number } | null;
       if (s?.status === "ready") return setPhase({ step: "done", id });
       if (s?.status === "failed") return setPhase({ step: "error", message: "Le traitement de la vidéo a échoué. Essaie un autre fichier.", retry: false });
-      setPhase({ step: "processing", id, pct: s?.progress ?? 0 });
-      await new Promise((r) => setTimeout(r, 4000));
+      const elapsed = Date.now() - start;
+      setPhase({ step: "processing", id, pct: s?.progress ?? 0, slow: elapsed > 3 * 60_000 });
+      await new Promise((r) => setTimeout(r, elapsed > 2 * 60_000 ? 10_000 : 4000));
     }
   }
 
@@ -217,7 +227,13 @@ export function UploadForm({ username, defaultGame }: { username: string; defaul
         <Progress
           label={phase.step === "uploading" ? `Envoi… ${phase.pct} %` : `Traitement de la vidéo… ${phase.pct} %`}
           pct={phase.pct}
-          hint={phase.step === "processing" ? `Tu peux quitter cette page : la vidéo apparaîtra sur @${username} dès qu'elle est prête.` : "Garde cette page ouverte pendant l'envoi."}
+          hint={
+            phase.step === "processing"
+              ? phase.slow
+                ? "Le traitement prend plus de temps que d'habitude. Ta vidéo est bien reçue : tu peux fermer cette page, elle sera publiée automatiquement."
+                : `Tu peux quitter cette page : la vidéo apparaîtra sur @${username} dès qu'elle est prête.`
+              : "Garde cette page ouverte pendant l'envoi."
+          }
         />
       ) : (
         <div className="flex gap-3">
@@ -230,6 +246,12 @@ export function UploadForm({ username, defaultGame }: { username: string; defaul
             {phase.step === "error" ? "Réessayer" : "Publier"}
           </button>
         </div>
+      )}
+
+      {phase.step === "processing" && (
+        <Link href={`/u/${username}`} className="block rounded-full border border-line py-3 text-center text-sm">
+          Aller sur mon profil
+        </Link>
       )}
     </div>
   );

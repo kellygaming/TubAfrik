@@ -25,5 +25,5 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   // Ni les fichiers statiques, ni le webhook Bunny (aucune session à rafraîchir).
-  matcher: ["/((?!_next/static|_next/image|api/bunny|favicon.ico|icon|manifest.webmanifest|.*\\.(?:png|jpg|jpeg|svg|webp|ico)$).*)"],
+  matcher: ["/((?!_next/static|_next/image|api/bunny|api/cron|favicon.ico|icon|manifest.webmanifest|.*\\.(?:png|jpg|jpeg|svg|webp|ico)$).*)"],
 };
