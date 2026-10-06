@@ -91,7 +91,8 @@ export function UploadForm({ username, defaultGame }: { username: string; defaul
         VideoId: cred.videoId,
         LibraryId: cred.libraryId,
       },
-      metadata: { filetype: file.type, title: file.name },
+      // Le titre côté Bunny: pseudo et légende plutôt que le nom du fichier du téléphone.
+      metadata: { filetype: file.type, title: `@${username} · ${caption.trim().slice(0, 60) || "TubAfrik"}` },
       onProgress: (sent, total) => setPhase({ step: "uploading", pct: Math.round((sent / total) * 100) }),
       onError: () => setPhase({ step: "error", message: "L'envoi a échoué. Vérifie ta connexion.", retry: true }),
       onSuccess: () => {
