@@ -19,14 +19,21 @@ export type PaymentState = "pending" | "paid" | "failed";
 export async function confirmPayment(paymentId: string): Promise<PaymentState> {
   const db = supabaseAdmin();
   const { data: p } = await db
-    .from("tub_payments").select("id,status,chariow_sale_id,created_at").eq("id", paymentId).maybeSingle();
+    .from("tub_payments").select("id,status,chariow_sale_id,amount_fcfa").eq("id", paymentId).maybeSingle();
   if (!p) return "failed";
   // « failed » est revérifié aussi: Chariow garde le même identifiant de
   // vente quand le fan réessaie après un premier paiement raté.
   if (p.status === "paid" || !p.chariow_sale_id) return p.status as PaymentState;
 
-  const verdict = await saleStatus(p.chariow_sale_id);
+  const { verdict, amount } = await saleStatus(p.chariow_sale_id);
   if (verdict === "paid") {
+    // La part du créateur se calcule sur ce que Chariow a VRAIMENT encaissé:
+    // une fiche oubliée à un autre prix ne doit ni léser ni surpayer personne.
+    if (amount && amount !== p.amount_fcfa) {
+      await db.from("tub_payments")
+        .update({ amount_fcfa: amount, creator_share: Math.floor(amount * CREATOR_SHARE) })
+        .eq("id", p.id).neq("status", "paid");
+    }
     const { error } = await db.rpc("tub_settle_payment", { p_payment: p.id, p_sale: p.chariow_sale_id });
     if (error) {
       console.error("[CADEAU] Confirmation impossible", p.id, error.message);

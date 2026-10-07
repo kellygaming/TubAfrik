@@ -96,8 +96,11 @@ export async function createCheckout(o: {
 
 export type SaleVerdict = "paid" | "failed" | "pending" | "unknown";
 
-/** Ce que Chariow sait de la vente. « unknown » = injoignable ou inconnue: on ne conclut rien. */
-export async function saleStatus(saleId: string): Promise<SaleVerdict> {
+/**
+ * Ce que Chariow sait de la vente. « unknown » = injoignable ou inconnue: on ne conclut rien.
+ * `amount` est le montant réellement facturé, en FCFA, quand Chariow le donne.
+ */
+export async function saleStatus(saleId: string): Promise<{ verdict: SaleVerdict; amount: number | null }> {
   let res: Response;
   try {
     res = await fetch(`${API}/sales/${encodeURIComponent(saleId)}`, {
@@ -106,18 +109,23 @@ export async function saleStatus(saleId: string): Promise<SaleVerdict> {
       cache: "no-store",
     });
   } catch {
-    return "unknown";
+    return { verdict: "unknown", amount: null };
   }
-  if (!res.ok) return "unknown";
+  if (!res.ok) return { verdict: "unknown", amount: null };
   const sale = ((await res.json().catch(() => null))?.data ?? {}) as {
     status?: string;
     payment?: { status?: string };
+    amount?: { value?: number; currency?: string };
   };
   const status = String(sale.status ?? "").toLowerCase();
   const payment = String(sale.payment?.status ?? "").toLowerCase();
-  if (status === "completed" || status === "settled" || payment === "success") return "paid";
-  if (status === "failed" || status === "abandoned" || payment === "failed" || payment === "cancelled") return "failed";
-  return "pending";
+  const value = Number(sale.amount?.value);
+  const amount = sale.amount?.currency === "XOF" && Number.isFinite(value) && value > 0 ? Math.round(value) : null;
+  if (status === "completed" || status === "settled" || payment === "success") return { verdict: "paid", amount };
+  if (status === "failed" || status === "abandoned" || payment === "failed" || payment === "cancelled") {
+    return { verdict: "failed", amount };
+  }
+  return { verdict: "pending", amount };
 }
 
 /** Signature d'un Pulse: « sha256=<HMAC-SHA256 du corps brut> », comparée en temps constant. */
