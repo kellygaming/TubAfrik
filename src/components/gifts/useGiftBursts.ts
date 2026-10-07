@@ -34,6 +34,8 @@ function markSeen(id: string) {
 async function toBurst(c: GiftComment): Promise<Burst | null> {
   const gift = (await loadGifts()).find((g) => g.slug === c.gift_slug);
   if (!gift || !c.author) return null;
+  // L'illustration se charge pendant que la file attend: elle est prête quand la scène commence.
+  if (gift.image_url) new Image().src = gift.image_url;
   // Sans message, la base écrit « a envoyé 💎 Diamant »: inutile de le répéter.
   const message = c.body.startsWith("a envoyé ") ? null : c.body;
   return { key: c.id, gift, fan: c.author, message };
