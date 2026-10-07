@@ -7,7 +7,7 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import type { FeedItem } from "@/lib/types";
 import { GAMES } from "@/lib/games";
 import { loginHref, useSession } from "../session";
-import { LeafIcon } from "../icons";
+import { LeafIcon, SearchIcon } from "../icons";
 import { LogoMark } from "../Logo";
 import { VideoSlide } from "./VideoSlide";
 import { CommentsSheet } from "./CommentsSheet";
@@ -252,10 +252,13 @@ function FeedHeader({ mode, game, dataSaver }: { mode: FeedMode; game: string | 
         {tab("abonnements", "Abonnements")}
         {tab("pour-toi", "Pour toi")}
         {dataSaver && (
-          <span title="Économie de data activée" className="absolute right-4 text-ok">
+          <span title="Économie de data activée" className="absolute right-14 text-ok">
             <LeafIcon width={18} height={18} />
           </span>
         )}
+        <Link href="/recherche" aria-label="Chercher un créateur" className="absolute right-3 p-1.5 text-white">
+          <SearchIcon width={22} height={22} />
+        </Link>
       </div>
       <nav aria-label="Filtrer par jeu" className="no-scrollbar pointer-events-auto flex gap-2 overflow-x-auto px-4 pt-1">
         <Chip href={feedHref(mode, null)} active={!game}>Tous</Chip>

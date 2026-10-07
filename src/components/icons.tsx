@@ -78,6 +78,25 @@ export const PlayIcon = (p: P) => (
     <path d="M8 5.5v13a1 1 0 0 0 1.5.9l10.3-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5Z" />
   </svg>
 );
+export const SearchIcon = (p: P) => (
+  <svg {...base(p)}>
+    <circle cx="11" cy="11" r="7" />
+    <path d="m16.5 16.5 4.5 4.5" />
+  </svg>
+);
+export const CameraIcon = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M4 8h3l2-2.5h6L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z" />
+    <circle cx="12" cy="13.5" r="3.5" />
+  </svg>
+);
+// Le carré avec la flèche vers le haut: l'icône « Partager » de Safari,
+// montrée dans le mode d'emploi d'installation sur iPhone.
+export const IosShareIcon = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M12 3v12M8 6.5 12 3l4 3.5M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1" />
+  </svg>
+);
 export const CloseIcon = (p: P) => (
   <svg {...base(p)}>
     <path d="M6 6l12 12M18 6 6 18" />

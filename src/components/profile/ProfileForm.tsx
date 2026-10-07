@@ -5,7 +5,7 @@ import { useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { GAMES } from "@/lib/games";
 import { COUNTRIES, flag } from "@/lib/countries";
-import { Avatar } from "../Avatar";
+import { AvatarPicker } from "./AvatarPicker";
 
 type Values = {
   username: string;
@@ -66,21 +66,16 @@ export function ProfileForm({
     router.refresh();
   }
 
-  const field = "h-12 w-full rounded-xl border border-line bg-surface px-4 text-[15px] outline-none transition focus:border-brand/70 focus:ring-2 focus:ring-brand/30";
+  const field = "h-12 w-full rounded-xl border border-line bg-surface px-4 text-base outline-none transition focus:border-brand/70 focus:ring-2 focus:ring-brand/30";
 
   return (
     <form onSubmit={submit} className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Avatar src={v.avatar_url} name={v.display_name || v.username} size={72} className="ring-2 ring-brand/60" />
-        <div className="text-sm text-muted">
-          Ta photo vient de ton compte Google.
-          {v.avatar_url && (
-            <button type="button" onClick={() => set("avatar_url", null)} className="mt-1 block text-xs text-text underline underline-offset-4">
-              Utiliser mes initiales
-            </button>
-          )}
-        </div>
-      </div>
+      <AvatarPicker
+        userId={userId}
+        name={v.display_name || v.username}
+        value={v.avatar_url}
+        onChange={(url) => set("avatar_url", url)}
+      />
 
       <label className="block">
         <span className="mb-1.5 block text-sm font-medium">Pseudo</span>

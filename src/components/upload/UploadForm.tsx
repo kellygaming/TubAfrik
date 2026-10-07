@@ -195,7 +195,7 @@ export function UploadForm({ username, defaultGame }: { username: string; defaul
             maxLength={300}
             disabled={busy}
             placeholder="Décris ton clip… #clutch #booyah"
-            className="flex-1 resize-none rounded-xl border border-line bg-surface p-3 text-sm outline-none focus:border-brand/70 focus:ring-2 focus:ring-brand/30"
+            className="flex-1 resize-none rounded-xl border border-line bg-surface p-3 text-base outline-none focus:border-brand/70 focus:ring-2 focus:ring-brand/30"
           />
         </label>
       </div>

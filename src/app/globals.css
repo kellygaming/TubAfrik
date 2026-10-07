@@ -41,6 +41,12 @@
 }
 
 @layer base {
+  /* En dessous de 16px, iOS zoome sur le champ au focus. */
+  input,
+  textarea,
+  select {
+    font-size: 1rem;
+  }
   html {
     color-scheme: dark;
     -webkit-tap-highlight-color: transparent;

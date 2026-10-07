@@ -23,6 +23,10 @@ export const viewport: Viewport = {
   themeColor: "#000000",
   width: "device-width",
   initialScale: 1,
+  // Sans ce plafond, iOS zoome tout seul quand on touche un champ de
+  // texte et l'écran reste agrandi. Le pincement, lui, reste possible:
+  // iOS ignore maximum-scale pour le geste volontaire de l'utilisateur.
+  maximumScale: 1,
   viewportFit: "cover",
 };
 
