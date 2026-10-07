@@ -74,6 +74,11 @@ export default async function LoginPage({ searchParams }: PageProps<"/connexion"
           <p className="mt-4 text-center text-xs leading-relaxed text-muted">
             Un seul compte pour TubAfrik et Kelly Gaming.
           </p>
+          <p className="mt-2 text-center text-xs text-muted">
+            <Link href="/mission" className="underline-offset-2 hover:text-text hover:underline">Notre mission</Link>
+            {" · "}
+            <Link href="/gagner" className="underline-offset-2 hover:text-text hover:underline">Gagner sur TubAfrik</Link>
+          </p>
         </div>
       </section>
     </main>

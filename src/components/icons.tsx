@@ -63,6 +63,13 @@ export const TrashIcon = (p: P) => (
     <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
   </svg>
 );
+export const StickerIcon = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M20 12.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6.5Z" />
+    <path d="M20 12.5 12.5 20v-5.5a2 2 0 0 1 2-2Z" />
+    <path d="M8.5 10h.01M14.5 10h.01M8.5 14c1 1 2.3 1.5 3.5 1.5" />
+  </svg>
+);
 export const VolumeOffIcon = (p: P) => (
   <svg {...base(p)}>
     <path d="M11 5 6 9H3v6h3l5 4zM22 9l-6 6M16 9l6 6" />

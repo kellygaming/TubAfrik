@@ -96,7 +96,9 @@ function Item({ row }: { row: Row }) {
           <span className="font-semibold">{who}</span>{" "}
           {row.kind === "follow" ? "s'est abonné à toi" : "a commenté ta vidéo"}
         </p>
-        {row.kind === "comment" && row.body && <p className="truncate text-sm text-white/80">{row.body}</p>}
+        {row.kind === "comment" && (
+          <p className="truncate text-sm text-white/80">{row.body || <span className="italic text-muted">a réagi avec un sticker</span>}</p>
+        )}
         <p className="text-xs text-muted">il y a {timeAgo(row.created_at)}</p>
       </div>
       {unread && <span className="h-2 w-2 shrink-0 rounded-full bg-like" aria-label="Nouveau" />}

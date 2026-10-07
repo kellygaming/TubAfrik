@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- stickers de 320 px déjà compressés en WebP */
 "use client";
 
 import Link from "next/link";
@@ -5,7 +6,11 @@ import { useEffect, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { COMMENT_COLUMNS, type CommentRow } from "@/lib/types";
 import { timeAgo } from "@/lib/format";
+import { stickerUrl, type Sticker } from "@/lib/stickers";
 import { Avatar } from "../Avatar";
+import { CloseIcon, StickerIcon, TrashIcon } from "../icons";
+import { StickerMaker } from "../stickers/StickerMaker";
+import { StickerPicker } from "../stickers/StickerPicker";
 import { Sheet } from "../Sheet";
 import { loginHref, useSession } from "../session";
 
@@ -29,6 +34,13 @@ export function CommentsSheet({
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [vips, setVips] = useState<Set<string>>(new Set());
+  const [sticker, setSticker] = useState<Sticker | null>(null);
+  const [picker, setPicker] = useState(false);
+  const [maker, setMaker] = useState(false);
+  const [pickerKey, setPickerKey] = useState(0);
+  const [stickerMenu, setStickerMenu] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
     if (!videoId) return;
@@ -57,6 +69,10 @@ export function CommentsSheet({
       cancelled = true;
       setComments(null);
       setVips(new Set());
+      setSticker(null);
+      setPicker(false);
+      setStickerMenu(null);
+      setConfirming(null);
     };
   }, [videoId, creatorId]);
 
@@ -67,26 +83,50 @@ export function CommentsSheet({
   async function send(e: React.FormEvent) {
     e.preventDefault();
     const text = body.trim();
-    if (!text || !userId || !videoId) return;
+    if ((!text && !sticker) || !userId || !videoId) return;
     setSending(true);
     setError(null);
     const { data, error } = await supabaseBrowser()
       .from("tub_comments")
-      .insert({ video_id: videoId, author_id: userId, body: text })
+      .insert({ video_id: videoId, author_id: userId, body: text, sticker_id: sticker?.id ?? null })
       .select(COMMENT_COLUMNS)
       .single();
     setSending(false);
     if (error) return setError("Envoi impossible, réessaie.");
     setComments((c) => [data as unknown as CommentRow, ...(c ?? [])]);
     setBody("");
+    setSticker(null);
+    setPicker(false);
     onCountChange(1);
   }
 
   async function remove(id: string) {
+    setConfirming(null);
     const { error } = await supabaseBrowser().from("tub_comments").delete().eq("id", id);
-    if (error) return;
+    if (error) return setError("Suppression impossible, réessaie.");
     setComments((c) => c?.filter((x) => x.id !== id) ?? null);
     onCountChange(-1);
+  }
+
+  function flash(text: string) {
+    setNotice(text);
+    setTimeout(() => setNotice((n) => (n === text ? null : n)), 2200);
+  }
+
+  async function keepSticker(s: Sticker) {
+    setStickerMenu(null);
+    if (!userId) return;
+    const { error } = await supabaseBrowser().from("tub_sticker_saves").insert({ user_id: userId, sticker_id: s.id });
+    // 23505: déjà dans la collection, c'est réussi aussi.
+    if (error && error.code !== "23505") return setError("Ajout impossible, réessaie.");
+    setPickerKey((k) => k + 1);
+    flash("Ajouté à tes stickers ✓");
+  }
+
+  function attachSticker(s: Sticker) {
+    setStickerMenu(null);
+    setSticker(s);
+    setPicker(false);
   }
 
   return (
@@ -128,15 +168,51 @@ export function CommentsSheet({
                         <span className="text-gold-grad">a offert {c.gift.name}</span>
                       </p>
                     )}
-                    {!(gift && c.body.startsWith("a envoyé ")) && (
+                    {c.body && !(gift && c.body.startsWith("a envoyé ")) && (
                       <p className={`mt-0.5 break-words text-sm ${gift || vip ? "font-medium text-white" : ""}`}>{c.body}</p>
                     )}
-                    {c.author_id === userId && (
-                      <button onClick={() => remove(c.id)} className="mt-1 text-xs text-muted hover:text-like">
-                        Supprimer
-                      </button>
+                    {c.sticker && (
+                      <div className="relative mt-1.5 w-fit">
+                        <button type="button" onClick={() => setStickerMenu((m) => (m === c.id ? null : c.id))}
+                          aria-label={c.sticker.caption ? `Sticker : ${c.sticker.caption}` : "Sticker"}
+                          className="block overflow-hidden rounded-2xl border-[3px] border-white shadow-lg transition active:scale-95">
+                          <img src={stickerUrl(c.sticker.image_path)} alt={c.sticker.caption ?? "Sticker"} loading="lazy"
+                            width={128} height={128} className="h-32 w-32 object-cover" />
+                        </button>
+                        {stickerMenu === c.id && userId && (
+                          <div className="animate-fade absolute left-full top-0 z-10 ml-2 w-44 overflow-hidden rounded-xl border border-line bg-surface-2 text-sm shadow-xl">
+                            <button type="button" onClick={() => keepSticker(c.sticker!)} className="block w-full px-3 py-2.5 text-left hover:bg-white/5">
+                              ⭐ Garder ce sticker
+                            </button>
+                            <button type="button" onClick={() => attachSticker(c.sticker!)} className="block w-full px-3 py-2.5 text-left hover:bg-white/5">
+                              💬 Répondre avec
+                            </button>
+                            {c.sticker.source_video_id && c.sticker.source_video_id !== videoId && (
+                              <Link href={`/v/${c.sticker.source_video_id}`} className="block px-3 py-2.5 hover:bg-white/5">
+                                🎬 Vidéo d&apos;origine
+                              </Link>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
+                  {userId && (c.author_id === userId || creatorId === userId) && (
+                    confirming === c.id ? (
+                      <div className="animate-fade flex shrink-0 flex-col items-end gap-1 text-xs">
+                        <button onClick={() => remove(c.id)} className="rounded-full bg-like px-2.5 py-1 font-semibold text-white">
+                          Supprimer
+                        </button>
+                        <button onClick={() => setConfirming(null)} className="px-2.5 py-1 text-muted">Annuler</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => setConfirming(c.id)} aria-label="Supprimer le commentaire"
+                        title={c.author_id === userId ? "Supprimer mon commentaire" : "Retirer ce commentaire de ma vidéo"}
+                        className="shrink-0 self-start rounded-full p-1.5 text-muted transition hover:bg-white/5 hover:text-like">
+                        <TrashIcon width={16} height={16} />
+                      </button>
+                    )
+                  )}
                 </li>
               );
             })}
@@ -145,24 +221,52 @@ export function CommentsSheet({
       </div>
 
       <div className="border-t border-line p-3">
+        {notice && <p className="animate-fade mb-2 text-center text-xs font-semibold text-gold">{notice}</p>}
         {userId && profile ? (
-          <form onSubmit={send} className="flex items-center gap-2">
-            <Avatar src={profile.avatar_url} name={profile.display_name} size={32} />
-            <input
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              maxLength={300}
-              placeholder="Ajouter un commentaire…"
-              aria-label="Ton commentaire"
-              className="h-10 flex-1 rounded-full bg-surface-2 px-4 text-base outline-none placeholder:text-muted focus:ring-2 focus:ring-brand/50"
-            />
-            <button
-              disabled={!body.trim() || sending}
-              className="h-10 rounded-full px-3 text-sm font-semibold text-brand disabled:text-muted"
-            >
-              Envoyer
-            </button>
-          </form>
+          <>
+            {sticker && (
+              <div className="animate-fade mb-2 flex items-center gap-2">
+                <div className="relative">
+                  <img src={stickerUrl(sticker.image_path)} alt={sticker.caption ?? "Sticker"}
+                    className="h-16 w-16 rounded-xl border-2 border-white object-cover" />
+                  <button type="button" onClick={() => setSticker(null)} aria-label="Retirer le sticker"
+                    className="absolute -right-2 -top-2 grid h-6 w-6 place-items-center rounded-full bg-surface-2 text-text ring-2 ring-surface">
+                    <CloseIcon width={12} height={12} />
+                  </button>
+                </div>
+                <span className="text-xs text-muted">Ajoute un mot ou envoie tel quel</span>
+              </div>
+            )}
+            <form onSubmit={send} className="flex items-center gap-2">
+              <Avatar src={profile.avatar_url} name={profile.display_name} size={32} />
+              <div className="relative flex-1">
+                <input
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  onFocus={() => setPicker(false)}
+                  maxLength={300}
+                  placeholder={sticker ? "Ajoute un mot (facultatif)…" : "Ajouter un commentaire…"}
+                  aria-label="Ton commentaire"
+                  className="h-10 w-full rounded-full bg-surface-2 pl-4 pr-11 text-base outline-none placeholder:text-muted focus:ring-2 focus:ring-brand/50"
+                />
+                <button type="button" onClick={() => setPicker((p) => !p)} aria-label="Stickers" aria-expanded={picker}
+                  className={`absolute right-1 top-1 grid h-8 w-8 place-items-center rounded-full transition ${
+                    picker ? "bg-gold text-black" : "text-muted hover:text-text"
+                  }`}>
+                  <StickerIcon width={20} height={20} />
+                </button>
+              </div>
+              <button
+                disabled={(!body.trim() && !sticker) || sending}
+                className="h-10 rounded-full px-3 text-sm font-semibold text-brand disabled:text-muted"
+              >
+                Envoyer
+              </button>
+            </form>
+            {picker && (
+              <StickerPicker refreshKey={pickerKey} onPick={attachSticker} onCreate={() => setMaker(true)} />
+            )}
+          </>
         ) : (
           <Link href={loginHref()} className="bg-brand block rounded-full py-2.5 text-center text-sm font-semibold text-bg">
             Connecte-toi pour commenter
@@ -170,6 +274,17 @@ export function CommentsSheet({
         )}
         {error && <p className="mt-2 text-center text-xs text-like">{error}</p>}
       </div>
+      {maker && videoId && (
+        <StickerMaker
+          videoId={videoId}
+          onClose={() => setMaker(false)}
+          onCreated={(s) => {
+            setMaker(false);
+            setPickerKey((k) => k + 1);
+            attachSticker(s);
+          }}
+        />
+      )}
     </Sheet>
   );
 }

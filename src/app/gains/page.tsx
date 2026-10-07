@@ -76,7 +76,8 @@ export default async function GainsPage() {
 
       <p className="mt-3 text-xs leading-relaxed text-muted">
         Tu touches 80 % de chaque cadeau. L&apos;argent devient retirable 3 jours après le don, le temps que
-        l&apos;opérateur valide définitivement le paiement. Pas de minimum : tu retires quand tu veux.
+        l&apos;opérateur valide définitivement le paiement. Pas de minimum : tu retires quand tu veux.{" "}
+        <Link href="/gagner" className="font-semibold text-text underline-offset-2 hover:underline">Comment ça marche →</Link>
       </p>
 
       {list.length > 0 && (

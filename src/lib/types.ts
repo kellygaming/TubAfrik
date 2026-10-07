@@ -1,3 +1,5 @@
+import type { Sticker } from "./stickers";
+
 export type FeedItem = {
   id: string;
   bunny_id: string;
@@ -39,6 +41,7 @@ export type CommentRow = {
   author_id: string;
   kind: "text" | "gift";
   gift: { emoji: string; name: string } | null;
+  sticker: Sticker | null;
   author: { username: string; display_name: string; avatar_url: string | null } | null;
 };
 
@@ -46,4 +49,4 @@ export const FEED_COLUMNS =
   "id,bunny_id,caption,game,duration_s,width,height,thumbnail_file,likes_count,comments_count,views_count,published_at,author_id,username,display_name,avatar_url,category";
 
 export const COMMENT_COLUMNS =
-  "id,body,created_at,author_id,kind,gift:tub_gifts(emoji,name),author:tub_profiles(username,display_name,avatar_url)";
+  "id,body,created_at,author_id,kind,gift:tub_gifts(emoji,name),sticker:tub_stickers(id,image_path,caption,source_video_id),author:tub_profiles(username,display_name,avatar_url)";

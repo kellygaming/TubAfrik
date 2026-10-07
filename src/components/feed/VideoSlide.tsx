@@ -140,9 +140,10 @@ export function VideoSlide(props: Props) {
   const portrait = !item.width || !item.height || item.height >= item.width;
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-black">
+    <div className="relative h-full w-full overflow-hidden bg-black" data-video-id={item.id}>
       <video
         ref={videoRef}
+        data-playlist={playlistUrl(item.bunny_id)}
         className={`absolute inset-0 h-full w-full ${portrait ? "object-cover" : "object-contain"}`}
         poster={thumbnailUrl(item.bunny_id, item.thumbnail_file)}
         playsInline

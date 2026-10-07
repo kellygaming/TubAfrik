@@ -146,6 +146,13 @@
     background-clip: text;
     color: transparent;
   }
+  /* Liseré des pages d'explication: une bande de pagne tissée. */
+  .kente-rule {
+    height: 6px;
+    width: 72px;
+    border-radius: 3px;
+    background: repeating-linear-gradient(90deg, #f4b400 0 14px, #ff6b1a 14px 20px, #000 20px 22px);
+  }
 }
 
 @keyframes vip-sheen {
