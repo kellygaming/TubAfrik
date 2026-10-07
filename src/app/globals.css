@@ -156,3 +156,90 @@
 @media (prefers-reduced-motion: reduce) {
   .vip-card::after { animation: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   ANIMATIONS DES CADEAUX (components/gifts/GiftBurst.tsx)
+   Tout tient dans --gift-duration: l'entrée, la pose, la sortie.
+   ═══════════════════════════════════════════════════════════════ */
+@layer components {
+  .gift-veil { animation: gift-veil var(--gift-duration) ease-out forwards; }
+  .gift-hero { transform: translate(-50%, -50%); animation: gift-hero var(--gift-duration) cubic-bezier(.2,.9,.3,1.2) forwards; }
+  .gift-hero-diamant { animation-name: gift-hero-spin; }
+  .gift-hero-couronne { animation-name: gift-hero-drop; }
+  .gift-hero-lion { animation-name: gift-hero-roar; }
+  .gift-banner { opacity: 0; animation: gift-banner var(--gift-duration) ease-out forwards; }
+
+  .gift-fall { opacity: 0; animation: gift-fall 2.4s ease-in forwards; }
+  .gift-spark { opacity: 0; transform: translate(-50%, -50%); animation: gift-spark 1.3s cubic-bezier(.15,.8,.3,1) forwards; }
+
+  .gift-rays {
+    transform: translate(-50%, -50%);
+    background: repeating-conic-gradient(from 0deg, rgb(244 180 0 / .18) 0deg 8deg, transparent 8deg 24deg);
+    mask-image: radial-gradient(circle, black 0, transparent 65%);
+    opacity: 0;
+    animation: gift-rays var(--gift-duration) linear forwards;
+  }
+  .gift-kente { display: flex; flex-direction: column; gap: 10px; }
+  .gift-kente span { display: block; height: 18px; transform: translateX(-110%); animation: gift-kente var(--gift-duration) cubic-bezier(.7,0,.3,1) forwards; }
+  .gift-lion { animation: gift-shake .5s .55s ease-in-out 2; }
+}
+
+@keyframes gift-veil { 0% { opacity: 0 } 12%, 82% { opacity: 1 } 100% { opacity: 0 } }
+@keyframes gift-banner { 0%, 18% { opacity: 0; transform: translateY(16px) } 28%, 84% { opacity: 1; transform: none } 100% { opacity: 0 } }
+
+@keyframes gift-hero {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.2) }
+  14% { opacity: 1; transform: translate(-50%, -50%) scale(1.15) }
+  22%, 82% { opacity: 1; transform: translate(-50%, -50%) scale(1) }
+  100% { opacity: 0; transform: translate(-50%, -80%) scale(.9) }
+}
+@keyframes gift-hero-spin {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.2) rotateY(0) }
+  18% { opacity: 1; transform: translate(-50%, -50%) scale(1.1) rotateY(360deg) }
+  26%, 82% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotateY(360deg) }
+  100% { opacity: 0; transform: translate(-50%, -80%) scale(.9) rotateY(360deg) }
+}
+@keyframes gift-hero-drop {
+  0% { opacity: 0; transform: translate(-50%, -260%) }
+  14% { opacity: 1; transform: translate(-50%, -42%) }
+  20% { transform: translate(-50%, -58%) }
+  26%, 82% { opacity: 1; transform: translate(-50%, -50%) }
+  100% { opacity: 0; transform: translate(-50%, -80%) scale(.9) }
+}
+@keyframes gift-hero-roar {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(3) }
+  12% { opacity: 1; transform: translate(-50%, -50%) scale(.92) }
+  18% { transform: translate(-50%, -50%) scale(1.08) }
+  24%, 84% { opacity: 1; transform: translate(-50%, -50%) scale(1) }
+  100% { opacity: 0; transform: translate(-50%, -80%) scale(.9) }
+}
+@keyframes gift-fall {
+  0% { opacity: 0; transform: translateY(-40px) rotate(0) }
+  10% { opacity: 1 }
+  100% { opacity: 0; transform: translateY(105vh) rotate(var(--spin)) }
+}
+@keyframes gift-spark {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.3) }
+  20% { opacity: 1 }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1) }
+}
+@keyframes gift-rays {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(0) }
+  15%, 80% { opacity: 1 }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(60deg) }
+}
+@keyframes gift-kente {
+  0% { transform: translateX(-110%) }
+  14%, 80% { transform: translateX(0) }
+  100% { transform: translateX(110%) }
+}
+@keyframes gift-shake {
+  0%, 100% { transform: translate(0) }
+  25% { transform: translate(-6px, 3px) }
+  50% { transform: translate(5px, -4px) }
+  75% { transform: translate(-3px, -2px) }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gift-fall, .gift-spark, .gift-rays, .gift-kente span, .gift-lion { animation: none; display: none; }
+}

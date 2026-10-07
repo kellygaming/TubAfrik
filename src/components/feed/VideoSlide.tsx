@@ -11,6 +11,8 @@ import { Avatar } from "../Avatar";
 import { CommentIcon, GiftIcon, HeartIcon, MoreIcon, PlayIcon, PlusIcon, ShareIcon, VolumeOffIcon } from "../icons";
 import { useHlsPlayer } from "./useHlsPlayer";
 import { useFeedSettings } from "./useFeedSettings";
+import { GiftBurst } from "../gifts/GiftBurst";
+import { useGiftBursts } from "../gifts/useGiftBursts";
 
 type Props = {
   item: FeedItem;
@@ -42,6 +44,7 @@ export function VideoSlide(props: Props) {
   const tapTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useHlsPlayer(videoRef, playlistUrl(item.bunny_id), { load, active, dataSaver });
+  const gifts = useGiftBursts(item.id, active);
 
   const activeRef = useRef(active);
   const pausedRef = useRef(false);
@@ -163,6 +166,8 @@ export function VideoSlide(props: Props) {
           style={{ left: h.x, top: h.y }}
         />
       ))}
+
+      {gifts.current && <GiftBurst key={gifts.current.key} burst={gifts.current} onDone={gifts.done} />}
 
       {paused && (
         <div className="pointer-events-none absolute inset-0 grid place-items-center">

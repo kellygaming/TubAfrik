@@ -4,9 +4,11 @@ export type Gift = {
   emoji: string;
   price_fcfa: number;
   vip_days: number;
+  /** Illustration (PNG/WebP transparente). Vide: on affiche l'emoji. */
+  image_url: string | null;
 };
 
-export const GIFT_COLUMNS = "slug,name,emoji,price_fcfa,vip_days";
+export const GIFT_COLUMNS = "slug,name,emoji,price_fcfa,vip_days,image_url";
 
 export const fcfa = (n: number) => `${new Intl.NumberFormat("fr-FR").format(n)} F`;
 

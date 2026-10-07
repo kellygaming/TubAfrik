@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { fcfa, GIFT_COLUMNS, vipLabel, type Gift } from "@/lib/gifts";
+import { fcfa, vipLabel, type Gift } from "@/lib/gifts";
+import { cachedGifts, loadGifts } from "@/lib/giftCatalog";
+import { GiftArt } from "../gifts/GiftArt";
 import { Avatar } from "../Avatar";
 import { Sheet } from "../Sheet";
 import { loginHref, useSession } from "../session";
@@ -16,12 +18,9 @@ export type SupportTarget = {
   videoId?: string | null;
 };
 
-// Catalogue lu une fois par visite: il change rarement.
-let giftsCache: Gift[] | null = null;
-
 export function SupportSheet({ target, onClose }: { target: SupportTarget | null; onClose: () => void }) {
   const { userId } = useSession();
-  const [gifts, setGifts] = useState<Gift[] | null>(giftsCache);
+  const [gifts, setGifts] = useState<Gift[] | null>(cachedGifts());
   const [selected, setSelected] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [phone, setPhone] = useState("");
@@ -31,13 +30,10 @@ export function SupportSheet({ target, onClose }: { target: SupportTarget | null
   useEffect(() => {
     if (!target) return;
     const supabase = supabaseBrowser();
-    if (!giftsCache) {
-      supabase.from("tub_gifts").select(GIFT_COLUMNS).order("sort").then(({ data }) => {
-        giftsCache = (data as Gift[] | null) ?? [];
-        setGifts(giftsCache);
-        setSelected((s) => s ?? giftsCache?.[1]?.slug ?? giftsCache?.[0]?.slug ?? null);
-      });
-    }
+    loadGifts().then((list) => {
+      setGifts(list);
+      setSelected((s) => s ?? list[1]?.slug ?? list[0]?.slug ?? null);
+    });
     if (userId) {
       supabase.from("tub_private").select("phone").eq("user_id", userId).maybeSingle()
         .then(({ data }) => data?.phone && setPhone((p) => p || data.phone));
@@ -105,7 +101,7 @@ export function SupportSheet({ target, onClose }: { target: SupportTarget | null
                         on ? "border-gold bg-gold/10" : "border-line bg-surface-2 hover:border-white/25"
                       }`}
                     >
-                      <span className={`text-4xl transition ${on ? "scale-110" : ""}`}>{g.emoji}</span>
+                      <GiftArt gift={g} size={44} className={`transition ${on ? "scale-110" : ""}`} />
                       <span className="mt-1.5 text-sm font-semibold">{g.name}</span>
                       <span className={`text-sm font-bold ${on ? "text-gold" : ""}`}>{fcfa(g.price_fcfa)}</span>
                       <span className="mt-0.5 text-[11px] text-muted">{vipLabel(g.vip_days)}</span>

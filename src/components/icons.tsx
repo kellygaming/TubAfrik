@@ -127,6 +127,12 @@ export const CheckIcon = (p: P) => (
     <path d="m5 12.5 4.5 4.5L19 7.5" />
   </svg>
 );
+export const BellIcon = ({ filled, ...p }: P) => (
+  <svg {...base(p)} fill={filled ? "currentColor" : "none"}>
+    <path d="M6 8.5a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 14.5 6 8.5" />
+    <path d="M10 19.5a2.2 2.2 0 0 0 4 0" />
+  </svg>
+);
 export const GiftIcon = (p: P) => (
   <svg {...base(p)}>
     <rect x="3.5" y="8.5" width="17" height="4" rx="1" />
