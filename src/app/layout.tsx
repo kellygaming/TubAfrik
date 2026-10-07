@@ -11,9 +11,9 @@ const unbounded = Unbounded({ variable: "--font-unbounded", subsets: ["latin"], 
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: "TubAfrik — les shorts des gamers africains", template: "%s · TubAfrik" },
+  title: { default: "TubAfrik — les vidéos courtes de l'Afrique", template: "%s · TubAfrik" },
   description:
-    "Partage tes meilleurs clips Free Fire, eFootball, CODM… La plateforme de vidéos courtes des gamers d'Afrique.",
+    "Musique, humour, cuisine, sport, gaming… La plateforme de vidéos courtes de l'Afrique, où les fans soutiennent leurs créateurs en mobile money.",
   applicationName: "TubAfrik",
   appleWebApp: { capable: true, title: "TubAfrik", statusBarStyle: "black-translucent" },
   openGraph: { siteName: "TubAfrik", locale: "fr_FR", type: "website" },

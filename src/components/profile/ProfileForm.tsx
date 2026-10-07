@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { GAMES } from "@/lib/games";
+import { CATEGORIES } from "@/lib/categories";
 import { COUNTRIES, flag } from "@/lib/countries";
 import { AvatarPicker } from "./AvatarPicker";
 
@@ -13,6 +14,8 @@ type Values = {
   avatar_url: string | null;
   bio: string;
   main_game: string | null;
+  main_category: string | null;
+  interests: string[];
   country: string | null;
 };
 
@@ -49,7 +52,9 @@ export function ProfileForm({
       display_name: v.display_name.trim(),
       avatar_url: v.avatar_url,
       bio: v.bio.trim() || null,
-      main_game: v.main_game,
+      main_category: v.main_category,
+      main_game: v.main_category === "gaming" ? v.main_game : null,
+      interests: v.interests,
       country: v.country,
     };
     const supabase = supabaseBrowser();
@@ -101,25 +106,46 @@ export function ProfileForm({
       </label>
 
       <fieldset>
-        <legend className="mb-2 text-sm font-medium">Ton jeu principal</legend>
+        <legend className="mb-1 text-sm font-medium">Ce que tu aimes regarder</legend>
+        <p className="mb-2.5 text-xs text-muted">Ton fil « Pour toi » partira de là, puis s&apos;affinera avec tes likes.</p>
         <div className="flex flex-wrap gap-2">
-          {GAMES.map((g) => {
-            const on = v.main_game === g.slug;
+          {CATEGORIES.map((c) => {
+            const on = v.interests.includes(c.slug);
             return (
-              <button
-                type="button"
-                key={g.slug}
-                aria-pressed={on}
-                onClick={() => set("main_game", on ? null : g.slug)}
-                className={`rounded-full border px-3.5 py-1.5 text-sm transition ${
-                  on ? "bg-brand border-transparent font-semibold text-bg" : "border-line bg-surface text-text/90 hover:border-white/20"
-                }`}
-              >
-                {g.name}
-              </button>
+              <Pill key={c.slug} on={on}
+                onClick={() => set("interests", on ? v.interests.filter((x) => x !== c.slug) : [...v.interests, c.slug])}>
+                {c.emoji} {c.name}
+              </Pill>
             );
           })}
         </div>
+      </fieldset>
+
+      <fieldset>
+        <legend className="mb-1 text-sm font-medium">Tu publies surtout… <span className="font-normal text-muted">facultatif</span></legend>
+        <p className="mb-2.5 text-xs text-muted">Affiché sur ton profil et proposé par défaut quand tu publies.</p>
+        <div className="flex flex-wrap gap-2">
+          {CATEGORIES.map((c) => {
+            const on = v.main_category === c.slug;
+            return (
+              <Pill key={c.slug} on={on} onClick={() => set("main_category", on ? null : c.slug)}>
+                {c.emoji} {c.name}
+              </Pill>
+            );
+          })}
+        </div>
+        {v.main_category === "gaming" && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {GAMES.map((g) => {
+              const on = v.main_game === g.slug;
+              return (
+                <Pill key={g.slug} on={on} small onClick={() => set("main_game", on ? null : g.slug)}>
+                  {g.name}
+                </Pill>
+              );
+            })}
+          </div>
+        )}
       </fieldset>
 
       <label className="block">
@@ -143,7 +169,7 @@ export function ProfileForm({
           maxLength={160}
           rows={3}
           onChange={(e) => set("bio", e.target.value)}
-          placeholder="Ex. : Rusher Free Fire 🔥 · Top 1 Côte d'Ivoire"
+          placeholder="Ex. : Cheffe ivoirienne 🍲 · Recettes en 60 secondes"
           className={`${field} h-auto resize-none py-3`}
         />
       </label>
@@ -154,5 +180,20 @@ export function ProfileForm({
         {busy ? "Enregistrement…" : mode === "create" ? "C'est parti 🚀" : "Enregistrer"}
       </button>
     </form>
+  );
+}
+
+function Pill({ on, small, onClick, children }: { on: boolean; small?: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={onClick}
+      className={`rounded-full border transition ${small ? "px-3 py-1 text-xs" : "px-3.5 py-1.5 text-sm"} ${
+        on ? "bg-brand border-transparent font-semibold text-bg" : "border-line bg-surface text-text/90 hover:border-white/20"
+      }`}
+    >
+      {children}
+    </button>
   );
 }

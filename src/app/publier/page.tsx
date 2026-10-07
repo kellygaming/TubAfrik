@@ -10,7 +10,7 @@ export default async function PublishPage() {
   const supabase = await supabaseServer();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/connexion?next=/publier");
-  const { data: profile } = await supabase.from("tub_profiles").select("username,main_game").eq("id", user.id).maybeSingle();
+  const { data: profile } = await supabase.from("tub_profiles").select("username,main_game,main_category").eq("id", user.id).maybeSingle();
   if (!profile) redirect("/bienvenue?next=/publier");
 
   return (
@@ -20,7 +20,7 @@ export default async function PublishPage() {
         <h1 className="font-semibold">Nouvelle vidéo</h1>
         <span className="w-12" />
       </div>
-      <UploadForm username={profile.username} defaultGame={profile.main_game} />
+      <UploadForm username={profile.username} defaultCategory={profile.main_category} defaultGame={profile.main_game} />
     </main>
   );
 }

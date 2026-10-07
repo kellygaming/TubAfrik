@@ -2,16 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
-import { GAMES } from "@/lib/games";
+import { CATEGORIES } from "@/lib/categories";
 import { LogoMark, Wordmark } from "@/components/Logo";
 import { GoogleButton } from "./GoogleButton";
 
 export const metadata: Metadata = { title: "Connexion" };
 
-// La photo de fond: un collage de gamers africains (voir docs/prompt-collage.md).
+// La photo de fond: un collage de créateurs africains (voir docs/prompt-collage.md).
 // Son tiers bas est déjà noir: le texte s'y pose sans voile épais.
 const COLLAGE = "/connexion/collage.webp";
-const FEATURED = ["free-fire", "efootball", "codm", "pubg-mobile", "ea-fc"];
+const FEATURED = ["musique", "humour", "cuisine", "danse", "sport", "gaming", "beaute-mode"];
 
 export default async function LoginPage({ searchParams }: PageProps<"/connexion">) {
   const sp = await searchParams;
@@ -19,7 +19,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/connexion"
   const { user, profile } = await getSession();
   if (user) redirect(profile ? next : `/bienvenue?next=${encodeURIComponent(next)}`);
 
-  const games = GAMES.filter((g) => FEATURED.includes(g.slug));
+  const featured = CATEGORIES.filter((c) => FEATURED.includes(c.slug));
 
   return (
     <main className="relative min-h-dvh bg-bg lg:grid lg:grid-cols-[minmax(0,1fr)_480px]">
@@ -43,21 +43,21 @@ export default async function LoginPage({ searchParams }: PageProps<"/connexion"
           </div>
 
           <h1 className="font-display mt-8 text-[1.7rem] leading-[1.12] sm:text-[2rem] font-extrabold text-balance">
-            Tes clips.
+            Tes vidéos.
             <br />
             Ta communauté.
             <br />
             <span className="text-brand">Ton continent.</span>
           </h1>
           <p className="mt-4 text-[15px] leading-relaxed text-text/80">
-            La plateforme de vidéos courtes des gamers africains. Publie tes meilleures actions,
-            fais-toi un nom, et sois prêt quand la monétisation arrive.
+            La plateforme de vidéos courtes de l&apos;Afrique. Publie, fais-toi un nom,
+            et reçois les cadeaux de tes fans en mobile money.
           </p>
 
-          <ul aria-label="Jeux à l'honneur" className="mt-5 flex flex-wrap gap-1.5">
-            {games.map((g) => (
+          <ul aria-label="Catégories" className="mt-5 flex flex-wrap gap-1.5">
+            {featured.map((g) => (
               <li key={g.slug} className="rounded-md border border-line bg-surface/80 px-2.5 py-1 text-xs text-text/85 backdrop-blur-sm">
-                {g.name}
+                {g.emoji} {g.name}
               </li>
             ))}
           </ul>

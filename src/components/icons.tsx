@@ -127,6 +127,19 @@ export const CheckIcon = (p: P) => (
     <path d="m5 12.5 4.5 4.5L19 7.5" />
   </svg>
 );
+export const GiftIcon = (p: P) => (
+  <svg {...base(p)}>
+    <rect x="3.5" y="8.5" width="17" height="4" rx="1" />
+    <path d="M5 12.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7.5M12 8.5V21" />
+    <path d="M12 8.5S10.5 3.5 8 3.5a2.5 2.5 0 0 0 0 5M12 8.5s1.5-5 4-5a2.5 2.5 0 0 1 0 5" />
+  </svg>
+);
+export const WalletIcon = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M19 7V5.5A1.5 1.5 0 0 0 17.5 4H5a2 2 0 0 0 0 4h14a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2V6" />
+    <path d="M16.5 14h.01" />
+  </svg>
+);
 export const GoogleIcon = (p: SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" width={20} height={20} aria-hidden {...p}>
     <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.5a5.5 5.5 0 0 1-2.4 3.6v3h3.9c2.2-2.1 3.5-5.1 3.5-8.7Z" />

@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "TubAfrik",
     short_name: "TubAfrik",
-    description: "Les shorts des gamers africains",
+    description: "Les vidéos courtes de l'Afrique",
     start_url: "/",
     display: "standalone",
     orientation: "portrait",

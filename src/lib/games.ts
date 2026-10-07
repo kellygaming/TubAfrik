@@ -1,5 +1,4 @@
-// Les jeux mis en avant. Une simple liste en code tant qu'elle change
-// rarement: pas besoin d'une table ni d'un écran d'administration.
+// Les jeux, sous-filtre de la catégorie « Gaming ».
 export const GAMES = [
   { slug: "free-fire", name: "Free Fire", short: "FF" },
   { slug: "efootball", name: "eFootball", short: "eFoot" },
@@ -12,7 +11,6 @@ export const GAMES = [
   { slug: "clash-royale", name: "Clash Royale", short: "CR" },
   { slug: "genshin-impact", name: "Genshin Impact", short: "Genshin" },
   { slug: "autre-jeu", name: "Autre jeu", short: "Jeux" },
-  { slug: "hors-gaming", name: "Hors gaming", short: "Lifestyle" },
 ] as const;
 
 export type GameSlug = (typeof GAMES)[number]["slug"];

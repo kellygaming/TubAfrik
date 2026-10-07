@@ -6,8 +6,9 @@ import type { FeedItem } from "@/lib/types";
 import { playlistUrl, thumbnailUrl } from "@/lib/media";
 import { compact } from "@/lib/format";
 import { gameName } from "@/lib/games";
+import { videoTag } from "@/lib/categories";
 import { Avatar } from "../Avatar";
-import { CommentIcon, HeartIcon, MoreIcon, PlayIcon, PlusIcon, ShareIcon, VolumeOffIcon } from "../icons";
+import { CommentIcon, GiftIcon, HeartIcon, MoreIcon, PlayIcon, PlusIcon, ShareIcon, VolumeOffIcon } from "../icons";
 import { useHlsPlayer } from "./useHlsPlayer";
 import { useFeedSettings } from "./useFeedSettings";
 
@@ -18,10 +19,12 @@ type Props = {
   liked: boolean;
   following: boolean;
   isSelf: boolean;
+  giftable: boolean;
   onLike: (like: boolean) => void;
   onFollow: () => void;
   onComments: () => void;
   onShare: () => void;
+  onGift: () => void;
   onMore: () => void;
   onViewed: () => void;
 };
@@ -130,7 +133,7 @@ export function VideoSlide(props: Props) {
     }, 280);
   }
 
-  const game = gameName(item.game);
+  const tag = videoTag(item.category, item.game, gameName);
   const portrait = !item.width || !item.height || item.height >= item.width;
 
   return (
@@ -172,7 +175,7 @@ export function VideoSlide(props: Props) {
       {active && muted && (
         <button
           onClick={() => setMuted(false)}
-          className="animate-fade absolute left-3 top-[calc(env(safe-area-inset-top)+108px)] flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-xs font-medium backdrop-blur"
+          className="animate-fade absolute left-3 top-[calc(env(safe-area-inset-top)+var(--feed-top,108px))] flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-xs font-medium backdrop-blur"
         >
           <VolumeOffIcon width={16} height={16} /> Activer le son
         </button>
@@ -206,6 +209,11 @@ export function VideoSlide(props: Props) {
         <RailButton label={compact(item.comments_count)} onClick={props.onComments} aria="Commentaires">
           <CommentIcon width={30} height={30} />
         </RailButton>
+        {!isSelf && props.giftable && (
+          <RailButton label="Cadeau" onClick={props.onGift} aria={`Offrir un cadeau à ${item.display_name}`}>
+            <GiftIcon width={30} height={30} className="text-gold" />
+          </RailButton>
+        )}
         <RailButton label="Partager" onClick={props.onShare} aria="Partager">
           <ShareIcon width={30} height={30} />
         </RailButton>
@@ -228,10 +236,9 @@ export function VideoSlide(props: Props) {
           </p>
         )}
         <div className="mt-2 flex items-center gap-2 text-xs text-white/80">
-          {game && (
-            <Link href={`/?jeu=${item.game}`}
-              className="rounded-full bg-white/15 px-2.5 py-1 font-medium backdrop-blur-sm">
-              🎮 {game}
+          {tag && (
+            <Link href={tag.href} className="rounded-full bg-white/15 px-2.5 py-1 font-medium backdrop-blur-sm">
+              {tag.label}
             </Link>
           )}
           <span>{compact(item.views_count)} vues</span>

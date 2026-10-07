@@ -3,6 +3,7 @@ import { currentUser } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { createBunnyVideo, tusCredentials } from "@/lib/bunny";
 import { isGameSlug } from "@/lib/games";
+import { isCategorySlug } from "@/lib/categories";
 
 const MAX_PER_DAY = 15;
 
@@ -12,10 +13,12 @@ export async function POST(request: Request) {
   const user = await currentUser();
   if (!user) return NextResponse.json({ error: "Connecte-toi pour publier." }, { status: 401 });
 
-  const body = (await request.json().catch(() => null)) as { caption?: unknown; game?: unknown } | null;
+  const body = (await request.json().catch(() => null)) as { caption?: unknown; category?: unknown; game?: unknown } | null;
   const caption = typeof body?.caption === "string" ? body.caption.trim().slice(0, 300) : "";
-  const game = isGameSlug(body?.game) ? body.game : null;
-  if (!game) return NextResponse.json({ error: "Choisis le jeu de ta vidéo." }, { status: 400 });
+  const category = isCategorySlug(body?.category) ? body.category : null;
+  if (!category) return NextResponse.json({ error: "Choisis la catégorie de ta vidéo." }, { status: 400 });
+  // Le jeu n'a de sens que pour une vidéo gaming.
+  const game = category === "gaming" && isGameSlug(body?.game) ? body.game : null;
 
   const db = supabaseAdmin();
 
@@ -34,7 +37,7 @@ export async function POST(request: Request) {
   const guid = await createBunnyVideo(`${profile.username} · ${caption.slice(0, 60) || "TubAfrik"}`);
   const { data: video, error } = await db
     .from("tub_videos")
-    .insert({ author_id: user.id, bunny_id: guid, caption, game })
+    .insert({ author_id: user.id, bunny_id: guid, caption, category, game })
     .select("id").single();
   if (error) return NextResponse.json({ error: "Enregistrement impossible." }, { status: 500 });
 

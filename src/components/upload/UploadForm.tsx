@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { Upload } from "tus-js-client";
-import { GAMES, isGameSlug } from "@/lib/games";
+import { GAMES } from "@/lib/games";
+import { CATEGORIES, isCategorySlug } from "@/lib/categories";
 import { CheckIcon, UploadIcon } from "../icons";
 
 const MAX_BYTES = 300 * 1024 * 1024;
@@ -19,11 +20,20 @@ type Phase =
 
 type Credentials = { endpoint: string; libraryId: string; videoId: string; expire: number; signature: string };
 
-export function UploadForm({ username, defaultGame }: { username: string; defaultGame: string | null }) {
+export function UploadForm({
+  username,
+  defaultCategory,
+  defaultGame,
+}: {
+  username: string;
+  defaultCategory: string | null;
+  defaultGame: string | null;
+}) {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
-  const [game, setGame] = useState<string | null>(isGameSlug(defaultGame) ? defaultGame : null);
+  const [category, setCategory] = useState<string | null>(isCategorySlug(defaultCategory) ? defaultCategory : null);
+  const [game, setGame] = useState<string | null>(defaultCategory === "gaming" ? defaultGame : null);
   const [phase, setPhase] = useState<Phase>({ step: "pick" });
   const [problem, setProblem] = useState<string | null>(null);
   const uploadRef = useRef<Upload | null>(null);
@@ -66,14 +76,14 @@ export function UploadForm({ username, defaultGame }: { username: string; defaul
   }
 
   async function publish() {
-    if (!file || !game) return;
+    if (!file || !category) return;
     setPhase({ step: "uploading", pct: 0 });
 
     if (!prepared.current) {
       const res = await fetch("/api/videos", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ caption, game }),
+        body: JSON.stringify({ caption, category, game: category === "gaming" ? game : null }),
       });
       const data = (await res.json().catch(() => ({}))) as { id?: string; upload?: Credentials; error?: string };
       if (!res.ok || !data.id || !data.upload) {
@@ -194,30 +204,35 @@ export function UploadForm({ username, defaultGame }: { username: string; defaul
             onChange={(e) => setCaption(e.target.value)}
             maxLength={300}
             disabled={busy}
-            placeholder="Décris ton clip… #clutch #booyah"
+            placeholder="Décris ta vidéo… #recette #afrobeat #clutch"
             className="flex-1 resize-none rounded-xl border border-line bg-surface p-3 text-base outline-none focus:border-brand/70 focus:ring-2 focus:ring-brand/30"
           />
         </label>
       </div>
 
       <fieldset disabled={busy}>
-        <legend className="mb-2 text-sm font-medium">Jeu <span className="text-like">*</span></legend>
+        <legend className="mb-2 text-sm font-medium">Catégorie <span className="text-like">*</span></legend>
         <div className="flex flex-wrap gap-2">
-          {GAMES.map((g) => (
-            <button
-              type="button"
-              key={g.slug}
-              aria-pressed={game === g.slug}
-              onClick={() => setGame(g.slug)}
-              className={`rounded-full border px-3.5 py-1.5 text-sm transition ${
-                game === g.slug ? "bg-brand border-transparent font-semibold text-bg" : "border-line bg-surface hover:border-white/20"
-              }`}
-            >
-              {g.name}
-            </button>
+          {CATEGORIES.map((c) => (
+            <Pill key={c.slug} on={category === c.slug} onClick={() => setCategory(c.slug)}>
+              {c.emoji} {c.name}
+            </Pill>
           ))}
         </div>
       </fieldset>
+
+      {category === "gaming" && (
+        <fieldset disabled={busy}>
+          <legend className="mb-2 text-sm font-medium">Jeu <span className="font-normal text-muted">facultatif</span></legend>
+          <div className="flex flex-wrap gap-2">
+            {GAMES.map((g) => (
+              <Pill key={g.slug} on={game === g.slug} onClick={() => setGame(game === g.slug ? null : g.slug)}>
+                {g.name}
+              </Pill>
+            ))}
+          </div>
+        </fieldset>
+      )}
 
       {phase.step === "error" && (
         <p role="alert" className="rounded-xl bg-like/10 px-4 py-3 text-sm text-like">{phase.message}</p>
@@ -240,7 +255,7 @@ export function UploadForm({ username, defaultGame }: { username: string; defaul
           <button onClick={reset} className="rounded-full border border-line px-5 py-3 text-sm">Changer</button>
           <button
             onClick={publish}
-            disabled={!game || (phase.step === "error" && !phase.retry)}
+            disabled={!category || (phase.step === "error" && !phase.retry)}
             className="bg-brand flex-1 rounded-full py-3 font-semibold text-bg transition active:scale-[0.98] disabled:opacity-50"
           >
             {phase.step === "error" ? "Réessayer" : "Publier"}
@@ -254,6 +269,21 @@ export function UploadForm({ username, defaultGame }: { username: string; defaul
         </Link>
       )}
     </div>
+  );
+}
+
+function Pill({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={onClick}
+      className={`rounded-full border px-3.5 py-1.5 text-sm transition ${
+        on ? "bg-brand border-transparent font-semibold text-bg" : "border-line bg-surface hover:border-white/20"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -272,7 +302,7 @@ function Progress({ label, pct, hint }: { label: string; pct: number; hint: stri
 function Tips() {
   return (
     <ul className="mt-6 space-y-2 text-sm text-muted">
-      <li>🎯 Les 2 premières secondes décident de tout : commence par l&apos;action.</li>
+      <li>🎯 Les 2 premières secondes décident de tout : commence fort.</li>
       <li>📱 Filme ou recadre en vertical (9:16) pour remplir l&apos;écran.</li>
       <li>🎵 Évite la musique protégée : ta vidéo pourrait être retirée.</li>
     </ul>

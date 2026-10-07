@@ -1,15 +1,22 @@
 import { Feed } from "@/components/feed/Feed";
 import { BottomNav } from "@/components/BottomNav";
 import { InstallPrompt } from "@/components/InstallPrompt";
-import { fetchFeed, parseFeedParams } from "@/lib/feed";
+import { fetchFeed, newSeed, parseFeedParams } from "@/lib/feed";
 
 export default async function Home({ searchParams }: PageProps<"/">) {
-  const { mode, game } = parseFeedParams(await searchParams);
-  const items = await fetchFeed(mode, game);
+  const filter = parseFeedParams(await searchParams);
+  const seed = newSeed();
+  const items = await fetchFeed(filter, seed);
 
   return (
     <main className="h-dvh overflow-hidden bg-bg">
-      <Feed key={`${mode}:${game}`} initialItems={items} initialOffset={items.length} mode={mode} game={game} />
+      <Feed
+        key={`${filter.mode}:${filter.category}:${filter.game}`}
+        initialItems={items}
+        initialOffset={items.length}
+        filter={filter}
+        seed={seed}
+      />
       <BottomNav overlay />
       <InstallPrompt />
     </main>

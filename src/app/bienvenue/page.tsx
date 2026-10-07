@@ -34,6 +34,8 @@ export default async function WelcomePage({ searchParams }: PageProps<"/bienvenu
             avatar_url: typeof meta.avatar_url === "string" && meta.avatar_url.startsWith("https://") ? meta.avatar_url : null,
             bio: "",
             main_game: null,
+            main_category: null,
+            interests: [],
             country: null,
           }}
         />

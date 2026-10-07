@@ -78,7 +78,10 @@ export default async function AdminPage() {
     <main className="mx-auto min-h-dvh max-w-3xl px-5 py-8">
       <div className="flex items-baseline justify-between">
         <h1 className="text-2xl font-bold">Modération</h1>
-        <Link href="/" className="text-sm text-muted hover:text-text">← Fil</Link>
+        <div className="flex gap-4 text-sm">
+          <Link href="/admin/retraits" className="font-semibold">Retraits →</Link>
+          <Link href="/" className="text-muted hover:text-text">← Fil</Link>
+        </div>
       </div>
       <p className="mt-1 text-sm text-muted">
         {groups.length} vidéo{groups.length > 1 ? "s" : ""} signalée{groups.length > 1 ? "s" : ""}. Au-delà de 5 signalements,

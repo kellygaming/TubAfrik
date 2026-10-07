@@ -7,12 +7,21 @@ import { getSession } from "@/lib/session";
 import type { Profile } from "@/lib/types";
 import { compact } from "@/lib/format";
 import { gameName } from "@/lib/games";
+import { videoTag } from "@/lib/categories";
 import { countryName, flag } from "@/lib/countries";
 import { previewUrl, thumbnailUrl } from "@/lib/media";
 import { Avatar } from "@/components/Avatar";
 import { BottomNav } from "@/components/BottomNav";
 import { FollowButton } from "@/components/profile/FollowButton";
-import { PlayIcon } from "@/components/icons";
+import { PlayIcon, WalletIcon } from "@/components/icons";
+import { SupportButton } from "@/components/support/SupportButton";
+import { fcfa } from "@/lib/gifts";
+
+type TopFan = {
+  fan_id: string;
+  total_fcfa: number;
+  fan: { username: string; display_name: string; avatar_url: string | null } | null;
+};
 
 type VideoTile = {
   id: string;
@@ -26,7 +35,7 @@ async function loadProfile(username: string) {
   const supabase = await supabaseServer();
   const { data } = await supabase
     .from("tub_profiles")
-    .select("id,username,display_name,avatar_url,bio,main_game,country,followers_count,following_count,videos_count")
+    .select("id,username,display_name,avatar_url,bio,main_game,main_category,country,followers_count,following_count,videos_count")
     .eq("username", username.toLowerCase())
     .maybeSingle();
   return data as Profile | null;
@@ -37,7 +46,7 @@ export async function generateMetadata({ params }: PageProps<"/u/[username]">): 
   if (!p) return { title: "Profil introuvable" };
   return {
     title: `${p.display_name} (@${p.username})`,
-    description: p.bio || `Les clips de ${p.display_name} sur TubAfrik`,
+    description: p.bio || `Les vidéos de ${p.display_name} sur TubAfrik`,
     openGraph: { images: p.avatar_url ? [p.avatar_url] : [] },
   };
 }
@@ -50,7 +59,8 @@ export default async function ProfilePage({ params }: PageProps<"/u/[username]">
   const { user } = await getSession();
   const isSelf = user?.id === p.id;
 
-  const [{ data: videos }, { data: follow }] = await Promise.all([
+  const now = new Date().toISOString();
+  const [{ data: videos }, { data: follow }, { data: fans }, { count: giftsOn }] = await Promise.all([
     supabase
       .from("tub_videos")
       .select("id,bunny_id,thumbnail_file,status,views_count")
@@ -61,9 +71,19 @@ export default async function ProfilePage({ params }: PageProps<"/u/[username]">
     user && !isSelf
       ? supabase.from("tub_follows").select("follower_id").eq("follower_id", user.id).eq("followee_id", p.id).maybeSingle()
       : Promise.resolve({ data: null }),
+    supabase
+      .from("tub_vip")
+      .select("fan_id,total_fcfa,fan:tub_profiles!tub_vip_fan_id_fkey(username,display_name,avatar_url)")
+      .eq("creator_id", p.id)
+      .gt("expires_at", now)
+      .order("total_fcfa", { ascending: false })
+      .limit(10),
+    supabase.from("tub_gifts").select("slug", { count: "exact", head: true }),
   ]);
+  const topFans = (fans as unknown as TopFan[] | null) ?? [];
+  const viewerIsVip = !!user && topFans.some((f) => f.fan_id === user.id);
   const tiles = (videos as VideoTile[] | null) ?? [];
-  const game = gameName(p.main_game);
+  const tag = videoTag(p.main_category, p.main_game, gameName);
   const country = countryName(p.country);
 
   return (
@@ -75,7 +95,7 @@ export default async function ProfilePage({ params }: PageProps<"/u/[username]">
           <p className="text-sm text-muted">@{p.username}</p>
 
           <div className="mt-3 flex flex-wrap justify-center gap-2 text-xs">
-            {game && <span className="rounded-full bg-surface-2 px-3 py-1">🎮 {game}</span>}
+            {tag && <span className="rounded-full bg-surface-2 px-3 py-1">{tag.label}</span>}
             {country && <span className="rounded-full bg-surface-2 px-3 py-1">{flag(p.country)} {country}</span>}
           </div>
 
@@ -95,15 +115,51 @@ export default async function ProfilePage({ params }: PageProps<"/u/[username]">
 
           {p.bio && <p className="mt-4 max-w-sm whitespace-pre-line text-sm text-text/90">{p.bio}</p>}
 
-          <div className="mt-5 w-full max-w-xs">
+          <div className="mt-5 flex w-full max-w-xs gap-2">
             {isSelf ? (
-              <Link href="/profil/modifier" className="block rounded-full border border-line bg-surface py-2.5 text-sm font-semibold hover:bg-surface-2">
-                Modifier le profil
-              </Link>
+              <>
+                <Link href="/profil/modifier" className="flex-1 rounded-full border border-line bg-surface py-2.5 text-sm font-semibold hover:bg-surface-2">
+                  Modifier le profil
+                </Link>
+                <Link href="/gains" className="flex items-center gap-1.5 rounded-full bg-gold px-4 py-2.5 text-sm font-bold text-black">
+                  <WalletIcon width={18} height={18} /> Mes gains
+                </Link>
+              </>
             ) : (
-              <FollowButton profileId={p.id} initialFollowing={!!follow} />
+              <>
+                <div className="flex-1"><FollowButton profileId={p.id} initialFollowing={!!follow} /></div>
+                {(giftsOn ?? 0) > 0 && (
+                  <SupportButton target={{ creatorId: p.id, username: p.username, displayName: p.display_name, avatarUrl: p.avatar_url }} />
+                )}
+              </>
             )}
           </div>
+          {viewerIsVip && (
+            <p className="mt-3 text-xs text-muted"><span className="vip-badge">★ VIP</span> Tu es VIP de {p.display_name}</p>
+          )}
+
+          {topFans.length > 0 && (
+            <section className="mt-6 w-full">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted">Meilleurs fans</h2>
+              <ul className="no-scrollbar mt-3 flex justify-center gap-4 overflow-x-auto">
+                {topFans.map((f, i) => (
+                  <li key={f.fan_id} className="shrink-0">
+                    <Link href={`/u/${f.fan?.username}`} className="flex w-16 flex-col items-center">
+                      <span className="relative">
+                        <Avatar src={f.fan?.avatar_url} name={f.fan?.display_name ?? "?"} size={48}
+                          className={i === 0 ? "ring-2 ring-gold" : "ring-1 ring-white/20"} />
+                        {i < 3 && (
+                          <span className="absolute -right-1 -top-1 text-sm">{["👑", "🥈", "🥉"][i]}</span>
+                        )}
+                      </span>
+                      <span className="mt-1 w-full truncate text-[11px]">{f.fan?.display_name}</span>
+                      {isSelf && <span className="text-[10px] text-gold">{fcfa(f.total_fcfa)}</span>}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </div>
       </header>
 

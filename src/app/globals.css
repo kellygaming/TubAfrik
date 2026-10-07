@@ -24,6 +24,7 @@
   --animate-pop: pop 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.3) forwards;
   --animate-sheet: sheet 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
   --animate-fade: fade 0.2s ease-out;
+  --animate-pop-in: pop-in 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.4);
 
   @keyframes pop {
     0% { transform: translate(-50%, -50%) scale(0.2) rotate(-12deg); opacity: 0; }
@@ -33,6 +34,11 @@
   @keyframes sheet {
     from { transform: translateY(100%); }
     to { transform: translateY(0); }
+  }
+  @keyframes pop-in {
+    0% { transform: scale(0.3) rotate(-15deg); opacity: 0; }
+    60% { transform: scale(1.15) rotate(5deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0); }
   }
   @keyframes fade {
     from { opacity: 0; }
@@ -91,3 +97,62 @@
   }
 }
 
+
+/* ═══════════════════════════════════════════════════════════════
+   VIP & CADEAUX — l'or du logo, et lui seul.
+   Pas de halo: un liseré kente (or → orange) et une lumière qui
+   passe lentement sur la carte, comme un reflet sur du métal.
+   ═══════════════════════════════════════════════════════════════ */
+@layer components {
+  .vip-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1rem;
+    border: 1px solid rgb(244 180 0 / 0.35);
+    background: linear-gradient(135deg, rgb(244 180 0 / 0.12), rgb(255 107 26 / 0.05) 55%, transparent);
+  }
+  .vip-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: linear-gradient(#f4b400, #ff6b1a);
+  }
+  .vip-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgb(255 255 255 / 0.07) 50%, transparent 60%);
+    transform: translateX(-100%);
+    animation: vip-sheen 4.5s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .vip-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    border-radius: 0.375rem;
+    padding: 0 0.35rem;
+    font-size: 0.625rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    line-height: 1.1rem;
+    color: #000;
+    background: linear-gradient(90deg, #f4b400, #ff9d1a);
+  }
+  .text-gold-grad {
+    background: linear-gradient(90deg, #f4b400, #ff8a1a);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+@keyframes vip-sheen {
+  0%, 55% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vip-card::after { animation: none; }
+}

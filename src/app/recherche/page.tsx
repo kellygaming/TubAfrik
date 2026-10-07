@@ -4,6 +4,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
 import { compact } from "@/lib/format";
 import { gameName } from "@/lib/games";
+import { videoTag } from "@/lib/categories";
 import { flag } from "@/lib/countries";
 import { Avatar } from "@/components/Avatar";
 import { BottomNav } from "@/components/BottomNav";
@@ -11,7 +12,7 @@ import { SearchBox } from "./SearchBox";
 
 export const metadata: Metadata = { title: "Recherche" };
 
-const COLUMNS = "id,username,display_name,avatar_url,bio,main_game,country,followers_count,following_count,videos_count";
+const COLUMNS = "id,username,display_name,avatar_url,bio,main_game,main_category,country,followers_count,following_count,videos_count";
 
 export default async function SearchPage({ searchParams }: PageProps<"/recherche">) {
   const sp = await searchParams;
@@ -56,7 +57,7 @@ export default async function SearchPage({ searchParams }: PageProps<"/recherche
                   </p>
                   <p className="truncate text-sm text-muted">
                     @{p.username} · {compact(p.followers_count)} abonné{p.followers_count > 1 ? "s" : ""}
-                    {gameName(p.main_game) ? ` · ${gameName(p.main_game)}` : ""}
+                    {videoTag(p.main_category, p.main_game, gameName) ? ` · ${videoTag(p.main_category, p.main_game, gameName)!.label}` : ""}
                   </p>
                 </div>
                 <span className="shrink-0 rounded-full border border-line px-3 py-1.5 text-xs font-medium">Voir</span>

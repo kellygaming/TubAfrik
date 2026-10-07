@@ -12,7 +12,7 @@ export default async function EditProfilePage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/connexion?next=/profil/modifier");
   const { data: p } = await supabase
-    .from("tub_profiles").select("username,display_name,avatar_url,bio,main_game,country").eq("id", user.id).maybeSingle();
+    .from("tub_profiles").select("username,display_name,avatar_url,bio,main_game,main_category,interests,country").eq("id", user.id).maybeSingle();
   if (!p) redirect("/bienvenue");
 
   return (

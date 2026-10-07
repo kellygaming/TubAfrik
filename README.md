@@ -1,10 +1,17 @@
 # TubAfrik
 
-Les shorts des gamers africains : un fil vertical façon TikTok, centré sur le gaming
-(Free Fire, eFootball, CODM…), pensé pour les réseaux mobiles africains.
+Les vidéos courtes de l'Afrique : un fil vertical façon TikTok, ouvert à tous les créateurs
+(musique, humour, cuisine, sport, gaming…), pensé pour les réseaux mobiles africains.
 
-**Version minimale** : publier, regarder, aimer, commenter, s'abonner, partager sur WhatsApp,
-signaler. La monétisation viendra ensuite (codes créateurs Kelly Gaming, cadeaux, pub).
+- **Base** : publier, regarder, aimer, commenter, s'abonner, partager sur WhatsApp, signaler.
+- **Un fil par personne** : le « Pour toi » (`tub_feed_v2`) pondère chaque vidéo par l'affinité
+  de la personne avec sa catégorie (centres d'intérêt choisis à l'inscription, likes, vues,
+  abonnements ; cookie `tub_int` pour les visiteurs), ajoute un hasard propre à la session,
+  relègue le déjà-vu et évite d'enchaîner le même créateur ou la même catégorie.
+- **Cadeaux & VIP** (première monétisation) : un fan offre 🌹 Rose, 💎 Diamant, 👑 Couronne ou
+  🦁 Lion d'Afrique, payé en mobile money via Chariow. Il devient VIP du créateur (badge,
+  commentaires en or placés en tête). Le TubAfrikain touche 80 %, retirable 3 jours après le
+  don, sans minimum (`/gains`) ; les retraits se règlent à la main sur `/admin/retraits`.
 
 ## Architecture
 
@@ -27,8 +34,9 @@ src/
 │   ├── publier/                 Mise en ligne
 │   ├── connexion/ bienvenue/    Connexion Google + choix du pseudo
 │   ├── profil/modifier/         Édition du profil
-│   ├── admin/                   Modération des signalements
-│   └── api/                     Création vidéo, état d'encodage, webhook Bunny
+│   ├── admin/                   Modération des signalements, retraits
+│   ├── gains/ merci/            Portefeuille du créateur, retour de paiement
+│   └── api/                     Vidéos, webhook Bunny, cadeaux, Pulse Chariow, retraits
 ├── components/feed/             Lecteur HLS économe, fil vertical, panneaux
 ├── lib/                         Supabase, Bunny, jeux, formats
 └── proxy.ts                     Rafraîchissement de session
