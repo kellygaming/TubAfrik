@@ -21,7 +21,7 @@ import { anonKey, useFeedSettings } from "./useFeedSettings";
 export type FeedMode = "pour-toi" | "abonnements";
 const PAGE = 8;
 
-export type FeedFilterProps = { mode: FeedMode; category: string | null; game: string | null };
+export type FeedFilterProps = { mode: FeedMode; categories: string[]; games: string[] };
 
 export function Feed({
   initialItems,
@@ -39,7 +39,7 @@ export function Feed({
   /** Lives à l'antenne: un bouton LIVE apparaît en haut à gauche. */
   liveCount?: number;
 }) {
-  const { mode, category, game } = filter;
+  const { mode, categories, games } = filter;
   const router = useRouter();
   const { userId } = useSession();
   const { dataSaver } = useFeedSettings();
@@ -89,10 +89,10 @@ export function Feed({
   const loadMore = useCallback(async () => {
     if (loading || done) return;
     setLoading(true);
-    const { data } = await supabaseBrowser().rpc("tub_feed_v2", {
+    const { data } = await supabaseBrowser().rpc("tub_feed_v3", {
       p_mode: mode,
-      p_category: category,
-      p_game: game,
+      p_categories: categories,
+      p_games: games,
       p_interests: userId ? null : topInterests(),
       p_seed: seed,
       p_anon_key: userId ? null : anonKey(),
@@ -107,7 +107,7 @@ export function Feed({
     });
     if (page.length < PAGE) setDone(true);
     setLoading(false);
-  }, [loading, done, mode, category, game, offset, seed, userId]);
+  }, [loading, done, mode, categories, games, offset, seed, userId]);
 
   useEffect(() => {
     loadMoreRef.current = loadMore;
@@ -196,9 +196,9 @@ export function Feed({
     <div
       className="relative mx-auto h-dvh w-full max-w-[calc(100dvh*9/16)] bg-black sm:border-x sm:border-line"
       // Hauteur de l'en-tête: la ligne des jeux s'ajoute sous les catégories.
-      style={{ "--feed-top": category === "gaming" ? "140px" : "108px" } as React.CSSProperties}
+      style={{ "--feed-top": categories.includes("gaming") ? "140px" : "108px" } as React.CSSProperties}
     >
-      <FeedHeader mode={mode} category={category} game={game} dataSaver={dataSaver} liveCount={liveCount} />
+      <FeedHeader mode={mode} categories={categories} games={games} dataSaver={dataSaver} liveCount={liveCount} />
 
       <div ref={scroller} className="no-scrollbar h-full snap-y snap-mandatory overflow-y-scroll overscroll-contain">
         {items.map((item, index) => (
@@ -230,7 +230,7 @@ export function Feed({
           </section>
         ))}
 
-        {items.length === 0 && <EmptyFeed mode={mode} filtered={!!(category || game)} loggedIn={!!userId} />}
+        {items.length === 0 && <EmptyFeed mode={mode} filtered={categories.length > 0} loggedIn={!!userId} />}
 
         {items.length > 0 && done && (
           <section className="grid h-dvh snap-start place-items-center px-8 text-center">
@@ -264,31 +264,34 @@ export function Feed({
   );
 }
 
-function feedHref(mode: FeedMode, category: string | null, game: string | null = null) {
+function feedHref(mode: FeedMode, categories: string[], games: string[] = []) {
   const p = new URLSearchParams();
   if (mode !== "pour-toi") p.set("mode", mode);
-  if (category) p.set("cat", category);
-  if (game) p.set("jeu", game);
+  if (categories.length) p.set("cat", categories.join(","));
+  if (games.length) p.set("jeu", games.join(","));
   const q = p.toString();
   return q ? `/?${q}` : "/";
 }
 
+/** Coche ou décoche une valeur. */
+const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
+
 function FeedHeader({
   mode,
-  category,
-  game,
+  categories,
+  games,
   dataSaver,
   liveCount,
 }: {
   mode: FeedMode;
-  category: string | null;
-  game: string | null;
+  categories: string[];
+  games: string[];
   dataSaver: boolean;
   liveCount: number;
 }) {
   const tab = (m: FeedMode, label: string) => (
     <Link
-      href={feedHref(m, category, game)}
+      href={feedHref(m, categories, games)}
       scroll={false}
       aria-current={mode === m ? "page" : undefined}
       className={`relative px-1 pb-1.5 text-[15px] font-semibold transition ${mode === m ? "text-white" : "text-white/60"}`}
@@ -304,7 +307,7 @@ function FeedHeader({
     navRef.current?.querySelectorAll("[aria-current=page]").forEach((el) =>
       el.scrollIntoView({ inline: "center", block: "nearest" }),
     );
-  }, [category, game]);
+  }, [categories, games]);
 
   return (
     <header ref={navRef} className="pt-safe pointer-events-none absolute inset-x-0 top-0 z-30 bg-gradient-to-b from-black/70 via-black/30 to-transparent pb-6">
@@ -329,18 +332,22 @@ function FeedHeader({
         </Link>
       </div>
       <nav aria-label="Filtrer par catégorie" className="no-scrollbar pointer-events-auto flex gap-2 overflow-x-auto px-4 pt-1">
-        <Chip href={feedHref(mode, null)} active={!category}>Tout</Chip>
-        {CATEGORIES.map((c) => (
-          <Chip key={c.slug} href={feedHref(mode, c.slug)} active={category === c.slug}>
+        <Chip href={feedHref(mode, [])} active={categories.length === 0}>Tout</Chip>
+        {CATEGORIES.map((c) => {
+          const next = toggle(categories, c.slug);
+          // Décocher le gaming retire aussi les jeux choisis.
+          return (
+          <Chip key={c.slug} href={feedHref(mode, next, next.includes("gaming") ? games : [])} active={categories.includes(c.slug)}>
             {c.emoji} {c.name}
           </Chip>
-        ))}
+          );
+        })}
       </nav>
-      {category === "gaming" && (
+      {categories.includes("gaming") && (
         <nav aria-label="Filtrer par jeu" className="no-scrollbar pointer-events-auto mt-2 flex gap-2 overflow-x-auto px-4">
-          <Chip href={feedHref(mode, "gaming")} active={!game} small>Tous les jeux</Chip>
+          <Chip href={feedHref(mode, categories)} active={games.length === 0} small>Tous les jeux</Chip>
           {GAMES.map((g) => (
-            <Chip key={g.slug} href={feedHref(mode, "gaming", g.slug)} active={game === g.slug} small>
+            <Chip key={g.slug} href={feedHref(mode, categories, toggle(games, g.slug))} active={games.includes(g.slug)} small>
               {g.name}
             </Chip>
           ))}

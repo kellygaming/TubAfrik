@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: PageProps<"/v/[id]">): Promis
 export default async function VideoPage({ params }: PageProps<"/v/[id]">) {
   const item = await fetchFeedItem((await params).id);
   if (!item) notFound();
-  const filter = { mode: "pour-toi" as const, category: null, game: null };
+  const filter = { mode: "pour-toi" as const, categories: [], games: [] };
   const seed = newSeed();
   const rest = await fetchFeed(filter, seed);
 

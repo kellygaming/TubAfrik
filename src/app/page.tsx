@@ -22,7 +22,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
   return (
     <main className="h-dvh overflow-hidden bg-bg">
       <Feed
-        key={`${filter.mode}:${filter.category}:${filter.game}`}
+        key={`${filter.mode}:${filter.categories.join(",")}:${filter.games.join(",")}`}
         initialItems={items}
         initialOffset={items.length}
         filter={filter}

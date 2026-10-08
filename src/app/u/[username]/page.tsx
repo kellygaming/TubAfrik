@@ -61,7 +61,7 @@ export default async function ProfilePage({ params }: PageProps<"/u/[username]">
   const isSelf = user?.id === p.id;
 
   const now = new Date().toISOString();
-  const [{ data: videos }, { data: follow }, { data: fans }, { count: giftsOn }, { data: onAir }] = await Promise.all([
+  const [{ data: videos }, { data: follow }, { data: fans }, { count: giftsOn }, { data: onAir }, { data: totals }] = await Promise.all([
     supabase
       .from("tub_videos")
       .select("id,bunny_id,thumbnail_file,status,views_count")
@@ -82,7 +82,11 @@ export default async function ProfilePage({ params }: PageProps<"/u/[username]">
     supabase.from("tub_gifts").select("slug", { count: "exact", head: true }),
     supabase.from("tub_lives").select("id").eq("creator_id", p.id).eq("status", "live")
       .gte("last_live_at", onAirCutoff()).maybeSingle(),
+    // Totaux de toutes les vidéos publiées (pas seulement celles affichées).
+    supabase.from("tub_videos").select("views_count,likes_count").eq("author_id", p.id).eq("status", "ready"),
   ]);
+  const totalViews = (totals ?? []).reduce((n, v) => n + (v.views_count ?? 0), 0);
+  const totalLikes = (totals ?? []).reduce((n, v) => n + (v.likes_count ?? 0), 0);
   const topFans = (fans as unknown as TopFan[] | null) ?? [];
   const viewerIsVip = !!user && topFans.some((f) => f.fan_id === user.id);
   const tiles = (videos as VideoTile[] | null) ?? [];
@@ -109,18 +113,32 @@ export default async function ProfilePage({ params }: PageProps<"/u/[username]">
             {country && <span className="rounded-full bg-surface-2 px-3 py-1">{flag(p.country)} {country}</span>}
           </div>
 
-          <dl className="mt-5 grid grid-cols-3 gap-8 text-center">
-            {[
-              [p.following_count, "Abonnements"],
-              [p.followers_count, "Abonnés"],
-              [p.videos_count, "Vidéos"],
-            ].map(([n, label]) => (
-              <div key={label}>
-                <dt className="sr-only">{label}</dt>
-                <dd className="text-lg font-bold">{compact(Number(n))}</dd>
-                <span className="text-xs text-muted">{label}</span>
-              </div>
-            ))}
+          <dl className="mt-5 grid grid-cols-4 gap-1 text-center sm:gap-6">
+            {(
+              [
+                [p.following_count, "Abonnements", `/u/${p.username}/abonnes?liste=abonnements`],
+                [p.followers_count, "Abonnés", `/u/${p.username}/abonnes`],
+                [totalLikes, "J'aime", null],
+                [totalViews, "Vues", null],
+              ] as const
+            ).map(([n, label, href]) => {
+              const inner = (
+                <>
+                  <dd className="text-lg font-bold">{compact(Number(n))}</dd>
+                  <span className="text-xs text-muted">{label}</span>
+                </>
+              );
+              return (
+                <div key={label} className="min-w-0 px-1">
+                  <dt className="sr-only">{label}</dt>
+                  {href ? (
+                    <Link href={href} className="block rounded-xl py-1 transition hover:bg-surface-2">{inner}</Link>
+                  ) : (
+                    <div className="py-1">{inner}</div>
+                  )}
+                </div>
+              );
+            })}
           </dl>
 
           {p.bio && <p className="mt-4 max-w-sm whitespace-pre-line text-sm text-text/90">{p.bio}</p>}
