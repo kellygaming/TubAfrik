@@ -28,13 +28,14 @@ export default function PrivacyPage() {
 
       <InfoSection title="Pourquoi">
         <p>Pour faire fonctionner le service (publier, regarder, discuter), personnaliser le fil, verser leurs gains aux créateurs, prévenir les abus et respecter nos obligations légales et comptables. Nous ne vendons pas tes données.</p>
+        <p>Nous t&apos;écrivons par e-mail pour t&apos;accueillir, te prévenir quand ta vidéo est en ligne et te résumer ton activité (au plus un résumé toutes les 3 h). Chaque e-mail contient un lien pour ne plus les recevoir, et le réglage existe aussi dans « Modifier le profil ».</p>
       </InfoSection>
 
       <InfoSection title="Avec qui elles sont partagées">
         <ul className="list-disc space-y-2 pl-5">
           <li><b>Supabase</b> (base de données et connexion), <b>Vercel</b> (hébergement du site).</li>
           <li><b>Bunny.net</b> (stockage et diffusion des vidéos), <b>Cloudflare</b> (diffusion des lives).</li>
-          <li><b>Chariow</b> (paiements mobile money), <b>Google</b> (connexion).</li>
+          <li><b>Chariow</b> (paiements mobile money), <b>Google</b> (connexion), <b>Zoho</b> (envoi des e-mails).</li>
         </ul>
         <p>Ce que tu publies (profil, vidéos, commentaires, lives) est visible par les autres utilisateurs.</p>
       </InfoSection>

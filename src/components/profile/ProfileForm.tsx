@@ -14,6 +14,7 @@ type Values = {
   display_name: string;
   avatar_url: string | null;
   cover_url?: string | null;
+  email_opt_out?: boolean;
   bio: string;
   main_game: string | null;
   main_category: string | null;
@@ -63,7 +64,7 @@ export function ProfileForm({
     const { error } =
       mode === "create"
         ? await supabase.from("tub_profiles").insert({ id: userId, ...row })
-        : await supabase.from("tub_profiles").update(row).eq("id", userId);
+        : await supabase.from("tub_profiles").update({ ...row, email_opt_out: Boolean(v.email_opt_out) }).eq("id", userId);
 
     if (error) {
       setBusy(false);
@@ -177,6 +178,23 @@ export function ProfileForm({
           className={`${field} h-auto resize-none py-3`}
         />
       </label>
+
+      {mode === "edit" && (
+        <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-line bg-surface px-4 py-3.5">
+          <span>
+            <span className="block text-sm font-medium">Emails d&apos;activité</span>
+            <span className="block text-xs text-muted">Cadeaux, abonnés, commentaires, vidéo publiée. Au plus un résumé toutes les 3 h.</span>
+          </span>
+          <input
+            type="checkbox"
+            role="switch"
+            checked={!v.email_opt_out}
+            onChange={(e) => set("email_opt_out", !e.target.checked)}
+            className="peer sr-only"
+          />
+          <span aria-hidden className="relative h-7 w-12 shrink-0 rounded-full bg-surface-2 transition peer-checked:bg-gold peer-focus-visible:ring-2 peer-focus-visible:ring-brand/50 after:absolute after:left-1 after:top-1 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition peer-checked:after:translate-x-5" />
+        </label>
+      )}
 
       {error && <p role="alert" className="rounded-xl bg-like/10 px-4 py-3 text-sm text-like">{error}</p>}
 
