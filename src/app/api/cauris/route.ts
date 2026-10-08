@@ -50,7 +50,9 @@ export async function POST(request: Request) {
       name: me.display_name,
       phone: chariowPhone,
       metadata: { app: "tubafrik", tub_cauri_purchase_id: purchase.id },
-      redirectUrl: `${SITE_URL}/cauris/merci?c=${purchase.id}&retour=${encodeURIComponent(back)}`,
+      // Chariow refuse certaines adresses de retour (« redirect url invalide »):
+      // le chemin voyage en base64url, que des lettres, chiffres, « - » et « _ ».
+      redirectUrl: `${SITE_URL}/cauris/merci?c=${purchase.id}${back === "/" ? "" : `&r=${Buffer.from(back).toString("base64url")}`}`,
     });
     await db.from("tub_cauri_purchases").update({ chariow_sale_id: checkout.saleId }).eq("id", purchase.id);
     return NextResponse.json({ id: purchase.id, url: checkout.url });

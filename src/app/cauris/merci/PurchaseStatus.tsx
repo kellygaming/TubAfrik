@@ -12,7 +12,7 @@ type State = { status: "pending" | "paid" | "failed" | "error"; cauris?: number;
 export function PurchaseStatus() {
   const sp = useSearchParams();
   const id = sp.get("c");
-  const raw = sp.get("retour") ?? "/";
+  const raw = decodeReturn(sp.get("r")) ?? sp.get("retour") ?? "/";
   const back = /^\/(?!\/)/.test(raw) ? raw : "/";
   const [state, setState] = useState<State>({ status: "pending" });
   const [late, setLate] = useState(false);
@@ -84,4 +84,14 @@ function Done({ emoji, title, text, href, cta }: { emoji: string; title: string;
       <Link href={href} className="bg-brand mt-8 block rounded-full py-3 font-semibold text-bg">{cta}</Link>
     </div>
   );
+}
+
+function decodeReturn(r: string | null) {
+  if (!r) return null;
+  try {
+    const bin = atob(r.replace(/-/g, "+").replace(/_/g, "/"));
+    return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+  } catch {
+    return null;
+  }
 }
