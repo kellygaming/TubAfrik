@@ -1,5 +1,5 @@
 import "server-only";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { isAdminEmail, supabaseAdmin } from "@/lib/supabase/admin";
 import { emailConfigured, sendEmail, unsubscribeUrl } from "./mailer";
 import { activityEmail, publishedEmail, welcomeEmail, type ActivityItem, type Mail } from "./templates";
 
@@ -24,6 +24,11 @@ const ITEMS_PER_DIGEST = 8;
 
 type Profile = { id: string; username: string; display_name: string; email_opt_out: boolean; deleted_at: string | null };
 
+// Mode test tant que EMAILS_LIVE ≠ "1": seuls les administrateurs reçoivent
+// leurs emails; pour les autres rien n'est marqué envoyé, tout partira à l'ouverture.
+const LIVE = process.env.EMAILS_LIVE === "1";
+const HELD = "réservé aux admins (mode test)";
+
 const ago = (ms: number) => new Date(Date.now() - ms).toISOString();
 
 async function emailOf(userId: string) {
@@ -40,6 +45,7 @@ export async function runEmailJobs() {
   async function deliver(userId: string, mail: Mail) {
     const to = await emailOf(userId);
     if (!to) return false;
+    if (!LIVE && !isAdminEmail(to)) throw new Error(HELD);
     await sendEmail({ to, userId, ...mail });
     budget--;
     return true;
@@ -139,6 +145,7 @@ export async function runEmailJobs() {
     }
   }
 
+  report.errors = report.errors.filter((e) => !e.endsWith(HELD));
   if (report.errors.length) console.error("[EMAIL]", report.errors.join(" | "));
   return report;
 }
