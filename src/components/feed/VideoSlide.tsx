@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FeedItem } from "@/lib/types";
 import { playlistUrl, thumbnailUrl } from "@/lib/media";
@@ -42,6 +43,15 @@ export function VideoSlide(props: Props) {
   const viewed = useRef(false);
   const lastTap = useRef(0);
   const tapTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const router = useRouter();
+  const profileHref = `/u/${item.username}`;
+  // Glisser vers la gauche: le profil du créateur arrive depuis la droite.
+  const gesture = useRef<{ x: number; y: number; id: number; horizontal: boolean | null } | null>(null);
+  const [pull, setPull] = useState(0);
+  // Barre de lecture déplaçable: position affichée pendant le glissé.
+  const [scrub, setScrub] = useState<number | null>(null);
+  const [duration, setDuration] = useState(0);
+  const scrubWasPlaying = useRef(false);
 
   useHlsPlayer(videoRef, playlistUrl(item.bunny_id), { load, active, dataSaver });
   const gifts = useGiftBursts(item.id, active);
@@ -90,10 +100,15 @@ export function VideoSlide(props: Props) {
     if (videoRef.current) videoRef.current.muted = muted;
   }, [muted]);
 
+  // Le profil est préchargé pendant qu'on regarde: le glissé l'ouvre sans attente.
+  useEffect(() => {
+    if (active) router.prefetch(profileHref);
+  }, [active, router, profileHref]);
+
   function onTimeUpdate() {
     const v = videoRef.current;
     if (!v || !v.duration) return;
-    setProgress(v.currentTime / v.duration);
+    if (scrub === null) setProgress(v.currentTime / v.duration);
     // Une vue = 3 secondes regardées (ou la moitié d'un clip très court).
     if (!viewed.current && v.currentTime >= Math.min(3, v.duration * 0.5)) {
       viewed.current = true;
@@ -104,6 +119,8 @@ export function VideoSlide(props: Props) {
   // Un tap: pause/lecture (et active le son au premier geste).
   // Deux taps rapprochés: un like, avec un cœur là où le doigt a touché.
   function onTap(e: React.PointerEvent<HTMLDivElement>) {
+    // Les boutons et liens au-dessus gèrent eux-mêmes leurs taps.
+    if ((e.target as HTMLElement).closest("a,button")) return;
     const now = Date.now();
     const rect = e.currentTarget.getBoundingClientRect();
     if (now - lastTap.current < 280) {
@@ -136,6 +153,83 @@ export function VideoSlide(props: Props) {
     }, 280);
   }
 
+  function onDown(e: React.PointerEvent<HTMLDivElement>) {
+    if (!e.isPrimary) return;
+    gesture.current = { x: e.clientX, y: e.clientY, id: e.pointerId, horizontal: null };
+  }
+
+  function onMove(e: React.PointerEvent<HTMLDivElement>) {
+    const g = gesture.current;
+    if (!g || g.id !== e.pointerId) return;
+    const dx = e.clientX - g.x;
+    const dy = e.clientY - g.y;
+    // On décide une fois pour toutes: geste horizontal ou défilement vertical du fil.
+    if (g.horizontal === null && Math.hypot(dx, dy) > 10) g.horizontal = Math.abs(dx) > Math.abs(dy) * 1.2;
+    if (g.horizontal) setPull(Math.max(0, -dx));
+  }
+
+  function onUp(e: React.PointerEvent<HTMLDivElement>) {
+    const g = gesture.current;
+    gesture.current = null;
+    if (!g || g.id !== e.pointerId) return;
+    if (g.horizontal === null) return onTap(e);
+    setPull(0);
+    if (g.horizontal && g.x - e.clientX > 70) router.push(profileHref);
+  }
+
+  function onCancel() {
+    gesture.current = null;
+    setPull(0);
+  }
+
+  function ratioAt(e: React.PointerEvent<HTMLDivElement>) {
+    const r = e.currentTarget.getBoundingClientRect();
+    return Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+  }
+
+  function seek(ratio: number, precise: boolean) {
+    const v = videoRef.current;
+    if (!v || !v.duration) return;
+    const t = ratio * v.duration;
+    // fastSeek (images clés) pendant le glissé, position exacte au lâcher.
+    if (!precise && "fastSeek" in v) v.fastSeek(t);
+    else v.currentTime = t;
+  }
+
+  function onScrubStart(e: React.PointerEvent<HTMLDivElement>) {
+    e.stopPropagation();
+    const v = videoRef.current;
+    if (!v || !v.duration) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    scrubWasPlaying.current = !v.paused;
+    v.pause();
+    setDuration(v.duration);
+    const r = ratioAt(e);
+    setScrub(r);
+    seek(r, false);
+  }
+
+  function onScrubMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (scrub === null) return;
+    e.stopPropagation();
+    const r = ratioAt(e);
+    setScrub(r);
+    seek(r, false);
+  }
+
+  function onScrubEnd(e: React.PointerEvent<HTMLDivElement>) {
+    if (scrub === null) return;
+    e.stopPropagation();
+    const r = ratioAt(e);
+    seek(r, true);
+    setProgress(r);
+    setScrub(null);
+    if (scrubWasPlaying.current) {
+      videoRef.current?.play().catch(() => {});
+      setPaused(false);
+    }
+  }
+
   const tag = videoTag(item.category, item.game, gameName);
   const portrait = !item.width || !item.height || item.height >= item.width;
 
@@ -155,7 +249,26 @@ export function VideoSlide(props: Props) {
       />
 
       {/* Zone de tap (sous les boutons, au-dessus de la vidéo) */}
-      <div className="absolute inset-0" onPointerUp={onTap} />
+      <div
+        className="absolute inset-0 touch-pan-y"
+        onPointerDown={onDown}
+        onPointerMove={onMove}
+        onPointerUp={onUp}
+        onPointerCancel={onCancel}
+      />
+
+      {pull > 0 && (
+        <div
+          className="pointer-events-none absolute inset-y-0 right-0 z-20 flex items-center justify-center overflow-hidden bg-black/85 backdrop-blur"
+          style={{ width: Math.min(pull, 260) }}
+        >
+          <div className={`flex min-w-[140px] flex-col items-center gap-2 transition-opacity ${pull > 70 ? "opacity-100" : "opacity-50"}`}>
+            <Avatar src={item.avatar_url} name={item.display_name} size={64} className="ring-2 ring-gold" />
+            <span className="max-w-[130px] truncate text-sm font-semibold">@{item.username}</span>
+            <span className="text-xs text-white/70">{pull > 70 ? "Lâche pour voir le profil" : "Glisse encore…"}</span>
+          </div>
+        </div>
+      )}
 
       {hearts.map((h) => (
         <HeartIcon
@@ -229,7 +342,7 @@ export function VideoSlide(props: Props) {
       </div>
 
       {/* Auteur, légende, jeu */}
-      <div className="text-shadow absolute left-0 right-20 bottom-[calc(env(safe-area-inset-bottom)+76px)] pl-4">
+      <div className="text-shadow absolute left-0 right-20 bottom-[calc(env(safe-area-inset-bottom)+84px)] pl-4">
         <Link href={`/u/${item.username}`} className="font-semibold">
           @{item.username}
         </Link>
@@ -251,9 +364,34 @@ export function VideoSlide(props: Props) {
         </div>
       </div>
 
-      {/* Progression */}
-      <div className="absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+64px)] h-0.5 bg-white/15">
-        <div className="h-full bg-white/80" style={{ width: `${progress * 100}%` }} />
+      {/* Progression: touche ou glisse pour avancer / revenir en arrière */}
+      {scrub !== null && duration > 0 ? (
+        <div className="text-shadow pointer-events-none absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+110px)] z-20 text-center text-2xl font-bold tabular-nums">
+          {clock(scrub * duration)}
+          <span className="text-white/60"> / {clock(duration)}</span>
+        </div>
+      ) : null}
+      <div
+        role="slider"
+        aria-label="Position de lecture"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round((scrub ?? progress) * 100)}
+        className="absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+64px)] z-10 flex h-5 touch-none items-end"
+        onPointerDown={onScrubStart}
+        onPointerMove={onScrubMove}
+        onPointerUp={onScrubEnd}
+        onPointerCancel={onScrubEnd}
+      >
+        <div className={`relative w-full bg-white/20 transition-[height] ${scrub !== null ? "h-1.5" : paused ? "h-1" : "h-0.5"}`}>
+          <div className="h-full bg-white/85" style={{ width: `${(scrub ?? progress) * 100}%` }} />
+          {(scrub !== null || paused) && (
+            <span
+              className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow"
+              style={{ left: `${(scrub ?? progress) * 100}%` }}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
@@ -283,4 +421,9 @@ function RailButton({
       {label && <span>{label}</span>}
     </button>
   );
+}
+
+function clock(s: number) {
+  const t = Math.max(0, Math.floor(s));
+  return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`;
 }

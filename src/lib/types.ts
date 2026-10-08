@@ -39,6 +39,8 @@ export type CommentRow = {
   body: string;
   created_at: string;
   author_id: string;
+  /** Commentaire racine auquel celui-ci répond (toujours un seul niveau). */
+  parent_id: string | null;
   kind: "text" | "gift";
   gift: { emoji: string; name: string } | null;
   sticker: Sticker | null;
@@ -49,4 +51,4 @@ export const FEED_COLUMNS =
   "id,bunny_id,caption,game,duration_s,width,height,thumbnail_file,likes_count,comments_count,views_count,published_at,author_id,username,display_name,avatar_url,category";
 
 export const COMMENT_COLUMNS =
-  "id,body,created_at,author_id,kind,gift:tub_gifts(emoji,name),sticker:tub_stickers(id,image_path,caption,source_video_id),author:tub_profiles(username,display_name,avatar_url)";
+  "id,body,created_at,author_id,parent_id,kind,gift:tub_gifts(emoji,name),sticker:tub_stickers(id,image_path,caption,source_video_id),author:tub_profiles(username,display_name,avatar_url)";

@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: "Activité", robots: { index: false }
 
 type Row = {
   id: number;
-  kind: "gift" | "follow" | "comment";
+  kind: "gift" | "follow" | "comment" | "reply";
   video_id: string | null;
   amount_fcfa: number | null;
   body: string | null;
@@ -94,9 +94,9 @@ function Item({ row }: { row: Row }) {
       <div className="min-w-0 flex-1">
         <p className="text-sm">
           <span className="font-semibold">{who}</span>{" "}
-          {row.kind === "follow" ? "s'est abonné à toi" : "a commenté ta vidéo"}
+          {row.kind === "follow" ? "s'est abonné à toi" : row.kind === "reply" ? "a répondu à ton commentaire" : "a commenté ta vidéo"}
         </p>
-        {row.kind === "comment" && (
+        {(row.kind === "comment" || row.kind === "reply") && (
           <p className="truncate text-sm text-white/80">{row.body || <span className="italic text-muted">a réagi avec un sticker</span>}</p>
         )}
         <p className="text-xs text-muted">il y a {timeAgo(row.created_at)}</p>
