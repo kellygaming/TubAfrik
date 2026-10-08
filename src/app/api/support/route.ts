@@ -20,6 +20,7 @@ export async function POST(request: Request) {
   const creatorId = typeof body?.creator === "string" ? body.creator : "";
   const giftSlug = typeof body?.gift === "string" ? body.gift : "";
   const videoId = typeof body?.video === "string" ? body.video : null;
+  const liveId = typeof body?.live === "string" ? body.live : null;
   const message = typeof body?.message === "string" ? body.message.trim().slice(0, 150) || null : null;
   const phone = typeof body?.phone === "string" ? normalizePhone(body.phone) : null;
 
@@ -46,6 +47,14 @@ export async function POST(request: Request) {
     video = v?.id ?? null;
   }
 
+  // Pendant un live: seulement un live ouvert de ce créateur.
+  let live: string | null = null;
+  if (liveId && /^[0-9a-f-]{36}$/i.test(liveId)) {
+    const { data: l } = await db.from("tub_lives").select("id").eq("id", liveId)
+      .eq("creator_id", creatorId).neq("status", "ended").maybeSingle();
+    live = l?.id ?? null;
+  }
+
   // Anti-abus: pas de rafale de paiements ouverts.
   const since = new Date(Date.now() - 3600 * 1000).toISOString();
   const { count } = await db.from("tub_payments").select("id", { count: "exact", head: true })
@@ -58,6 +67,7 @@ export async function POST(request: Request) {
     payer_id: user.id,
     creator_id: creatorId,
     video_id: video,
+    live_id: live,
     gift_slug: gift.slug,
     amount_fcfa: gift.price_fcfa,
     creator_share: Math.floor(gift.price_fcfa * CREATOR_SHARE),

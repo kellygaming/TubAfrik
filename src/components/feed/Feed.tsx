@@ -28,6 +28,7 @@ export function Feed({
   initialOffset,
   filter,
   seed,
+  liveCount = 0,
 }: {
   initialItems: FeedItem[];
   /** Combien d'éléments du fil ont déjà été lus côté serveur (hors vidéo partagée). */
@@ -35,6 +36,8 @@ export function Feed({
   filter: FeedFilterProps;
   /** Graine tirée par le serveur: la suite du fil garde le même ordre. */
   seed: string;
+  /** Lives à l'antenne: un bouton LIVE apparaît en haut à gauche. */
+  liveCount?: number;
 }) {
   const { mode, category, game } = filter;
   const router = useRouter();
@@ -195,7 +198,7 @@ export function Feed({
       // Hauteur de l'en-tête: la ligne des jeux s'ajoute sous les catégories.
       style={{ "--feed-top": category === "gaming" ? "140px" : "108px" } as React.CSSProperties}
     >
-      <FeedHeader mode={mode} category={category} game={game} dataSaver={dataSaver} />
+      <FeedHeader mode={mode} category={category} game={game} dataSaver={dataSaver} liveCount={liveCount} />
 
       <div ref={scroller} className="no-scrollbar h-full snap-y snap-mandatory overflow-y-scroll overscroll-contain">
         {items.map((item, index) => (
@@ -275,11 +278,13 @@ function FeedHeader({
   category,
   game,
   dataSaver,
+  liveCount,
 }: {
   mode: FeedMode;
   category: string | null;
   game: string | null;
   dataSaver: boolean;
+  liveCount: number;
 }) {
   const tab = (m: FeedMode, label: string) => (
     <Link
@@ -304,7 +309,14 @@ function FeedHeader({
   return (
     <header ref={navRef} className="pt-safe pointer-events-none absolute inset-x-0 top-0 z-30 bg-gradient-to-b from-black/70 via-black/30 to-transparent pb-6">
       <div className="pointer-events-auto relative flex h-12 items-center justify-center gap-5 px-4">
-        <span className="absolute left-4"><LogoMark size={28} /></span>
+        {liveCount > 0 ? (
+          <Link href="/lives" aria-label={`${liveCount} live${liveCount > 1 ? "s" : ""} en direct`}
+            className="absolute left-3 flex items-center gap-1.5 rounded-md bg-like px-2 py-1 text-[11px] font-bold tracking-wide text-white">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" /> LIVE
+          </Link>
+        ) : (
+          <span className="absolute left-4"><LogoMark size={28} /></span>
+        )}
         {tab("abonnements", "Abonnements")}
         {tab("pour-toi", "Pour toi")}
         {dataSaver && (

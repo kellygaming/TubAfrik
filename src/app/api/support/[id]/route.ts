@@ -13,10 +13,10 @@ export async function GET(_request: Request, ctx: RouteContext<"/api/support/[id
   const db = supabaseAdmin();
   const { data: p } = await db
     .from("tub_payments")
-    .select("id,payer_id,status,video_id,gift:tub_gifts(name,emoji,vip_days),creator:tub_profiles!tub_payments_creator_id_fkey(username,display_name)")
+    .select("id,payer_id,status,video_id,live_id,gift:tub_gifts(name,emoji,vip_days),creator:tub_profiles!tub_payments_creator_id_fkey(username,display_name)")
     .eq("id", id).maybeSingle();
   if (!p || p.payer_id !== user.id) return NextResponse.json({ error: "Introuvable." }, { status: 404 });
 
   const status = p.status === "paid" ? p.status : await confirmPayment(p.id);
-  return NextResponse.json({ status, video: p.video_id, gift: p.gift, creator: p.creator });
+  return NextResponse.json({ status, video: p.video_id, live: p.live_id, gift: p.gift, creator: p.creator });
 }

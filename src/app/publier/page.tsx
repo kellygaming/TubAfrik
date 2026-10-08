@@ -20,6 +20,14 @@ export default async function PublishPage() {
         <h1 className="font-semibold">Nouvelle vidéo</h1>
         <span className="w-12" />
       </div>
+      <Link href="/live" className="mb-6 flex items-center gap-3 rounded-2xl border border-like/40 bg-like/10 p-4 transition active:scale-[0.99]">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-like text-lg">🔴</span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-semibold">Passer en live</span>
+          <span className="block text-xs text-muted">Caméra ou écran de jeu, avec le chat et les cadeaux en direct</span>
+        </span>
+        <span className="text-muted">›</span>
+      </Link>
       <UploadForm username={profile.username} defaultCategory={profile.main_category} defaultGame={profile.main_game} />
     </main>
   );

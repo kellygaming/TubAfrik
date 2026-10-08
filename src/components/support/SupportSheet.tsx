@@ -16,6 +16,8 @@ export type SupportTarget = {
   displayName: string;
   avatarUrl: string | null;
   videoId?: string | null;
+  /** Offert pendant un live: le cadeau s'affiche dans le chat. */
+  liveId?: string | null;
 };
 
 export function SupportSheet({ target, onClose }: { target: SupportTarget | null; onClose: () => void }) {
@@ -50,7 +52,7 @@ export function SupportSheet({ target, onClose }: { target: SupportTarget | null
     const res = await fetch("/api/support", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ creator: target.creatorId, gift: gift.slug, video: target.videoId ?? null, message, phone }),
+      body: JSON.stringify({ creator: target.creatorId, gift: gift.slug, video: target.videoId ?? null, live: target.liveId ?? null, message, phone }),
     }).catch(() => null);
     const data = (await res?.json().catch(() => null)) as { url?: string; error?: string } | null;
     if (!res?.ok || !data?.url) {
@@ -112,7 +114,7 @@ export function SupportSheet({ target, onClose }: { target: SupportTarget | null
 
               <ul className="mt-4 space-y-1 text-xs text-muted">
                 <li>⭐ Badge VIP et commentaires en or, affichés en premier</li>
-                <li>💬 {target.videoId ? "Ton cadeau et ton message s'affichent sous la vidéo" : "Ton nom dans les meilleurs fans du profil"}</li>
+                <li>💬 {target.liveId ? "Ton cadeau et ton message s'affichent dans le live" : target.videoId ? "Ton cadeau et ton message s'affichent sous la vidéo" : "Ton nom dans les meilleurs fans du profil"}</li>
                 <li>🤝 80 % du montant va directement au TubAfrikain</li>
               </ul>
 

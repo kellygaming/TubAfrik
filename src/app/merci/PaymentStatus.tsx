@@ -8,6 +8,7 @@ import { vipLabel } from "@/lib/gifts";
 type State = {
   status: "pending" | "paid" | "failed" | "error";
   video?: string | null;
+  live?: string | null;
   gift?: { name: string; emoji: string; vip_days: number } | null;
   creator?: { username: string; display_name: string } | null;
 };
@@ -40,7 +41,7 @@ export function PaymentStatus() {
     };
   }, [id]);
 
-  const back = state.video ? `/v/${state.video}` : state.creator ? `/u/${state.creator.username}` : "/";
+  const back = state.live ? `/live/${state.live}` : state.video ? `/v/${state.video}` : state.creator ? `/u/${state.creator.username}` : "/";
 
   if (!id || state.status === "error") {
     return <Box emoji="🤔" title="Paiement introuvable" text="Ce lien ne correspond à aucun de tes cadeaux." href="/" cta="Retour au fil" />;
@@ -63,7 +64,7 @@ export function PaymentStatus() {
           </p>
         </div>
         <Link href={back} className="bg-brand mt-8 block rounded-full py-3 font-semibold text-bg">
-          {state.video ? "Revoir la vidéo" : "Voir son profil"}
+          {state.live ? "Retourner au live" : state.video ? "Revoir la vidéo" : "Voir son profil"}
         </Link>
       </div>
     );

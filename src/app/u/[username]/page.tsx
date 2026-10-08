@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
+import { onAirCutoff } from "@/lib/lives";
 import { getSession } from "@/lib/session";
 import type { Profile } from "@/lib/types";
 import { compact } from "@/lib/format";
@@ -60,7 +61,7 @@ export default async function ProfilePage({ params }: PageProps<"/u/[username]">
   const isSelf = user?.id === p.id;
 
   const now = new Date().toISOString();
-  const [{ data: videos }, { data: follow }, { data: fans }, { count: giftsOn }] = await Promise.all([
+  const [{ data: videos }, { data: follow }, { data: fans }, { count: giftsOn }, { data: onAir }] = await Promise.all([
     supabase
       .from("tub_videos")
       .select("id,bunny_id,thumbnail_file,status,views_count")
@@ -79,6 +80,8 @@ export default async function ProfilePage({ params }: PageProps<"/u/[username]">
       .order("total_fcfa", { ascending: false })
       .limit(10),
     supabase.from("tub_gifts").select("slug", { count: "exact", head: true }),
+    supabase.from("tub_lives").select("id").eq("creator_id", p.id).eq("status", "live")
+      .gte("last_live_at", onAirCutoff()).maybeSingle(),
   ]);
   const topFans = (fans as unknown as TopFan[] | null) ?? [];
   const viewerIsVip = !!user && topFans.some((f) => f.fan_id === user.id);
@@ -90,7 +93,14 @@ export default async function ProfilePage({ params }: PageProps<"/u/[username]">
     <main className="mx-auto min-h-dvh max-w-2xl pb-24">
       <header className="relative px-5 pt-[calc(env(safe-area-inset-top)+28px)] pb-6 text-center">
         <div className="relative flex flex-col items-center">
-          <Avatar src={p.avatar_url} name={p.display_name} size={96} className="ring-4 ring-bg" />
+          {onAir ? (
+            <Link href={`/live/${onAir.id}`} aria-label={`${p.display_name} est en direct`} className="relative">
+              <Avatar src={p.avatar_url} name={p.display_name} size={96} className="ring-4 ring-like" />
+              <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-md bg-like px-2 py-0.5 text-[10px] font-bold text-white">EN DIRECT</span>
+            </Link>
+          ) : (
+            <Avatar src={p.avatar_url} name={p.display_name} size={96} className="ring-4 ring-bg" />
+          )}
           <h1 className="mt-3 text-xl font-bold">{p.display_name}</h1>
           <p className="text-sm text-muted">@{p.username}</p>
 
