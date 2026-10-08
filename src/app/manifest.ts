@@ -4,9 +4,11 @@ import type { MetadataRoute } from "next";
 // avant d'avoir une appli native.
 export default function manifest(): MetadataRoute.Manifest {
   return {
+    id: "/",
     name: "TubAfrik",
     short_name: "TubAfrik",
-    description: "Les vidéos courtes de l'Afrique",
+    description: "Les vidéos courtes et les lives des créateurs africains. Soutiens-les avec des cadeaux.",
+    categories: ["entertainment", "social", "video"],
     start_url: "/",
     display: "standalone",
     orientation: "portrait",
@@ -19,6 +21,8 @@ export default function manifest(): MetadataRoute.Manifest {
       // PNG en plus du SVG: certains Android n'installent l'appli qu'avec eux.
       { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
       { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      // Version « any » exigée par les générateurs d'app Android (PWABuilder, Bubblewrap).
+      { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
     ],
   };
 }

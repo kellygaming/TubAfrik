@@ -80,6 +80,7 @@ export default async function AdminPage() {
         <h1 className="text-2xl font-bold">Modération</h1>
         <div className="flex gap-4 text-sm">
           <Link href="/admin/retraits" className="font-semibold">Retraits →</Link>
+          <Link href="/admin/comptes" className="font-semibold">Comptes →</Link>
           <Link href="/" className="text-muted hover:text-text">← Fil</Link>
         </div>
       </div>

@@ -25,6 +25,11 @@ export default async function EditProfilePage() {
       <ProfileForm mode="edit" userId={user.id} initial={{ ...p, bio: p.bio ?? "" }} />
       <div className="mt-10 border-t border-line pt-6">
         <SignOutButton />
+        <nav className="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs text-muted">
+          <Link href="/conditions" className="hover:text-text">Conditions</Link>
+          <Link href="/confidentialite" className="hover:text-text">Confidentialité</Link>
+          <Link href="/compte/supprimer" className="text-like/80 hover:text-like">Supprimer mon compte</Link>
+        </nav>
       </div>
     </main>
   );

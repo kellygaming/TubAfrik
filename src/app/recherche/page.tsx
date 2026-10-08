@@ -19,7 +19,7 @@ export default async function SearchPage({ searchParams }: PageProps<"/recherche
   const q = (typeof sp.q === "string" ? sp.q : "").trim().slice(0, 40);
 
   const supabase = await supabaseServer();
-  let query = supabase.from("tub_profiles").select(COLUMNS).order("followers_count", { ascending: false }).limit(25);
+  let query = supabase.from("tub_profiles").select(COLUMNS).is("deleted_at", null).order("followers_count", { ascending: false }).limit(25);
   if (q) {
     // Le % et le _ sont des jokers SQL: échappés pour que chercher
     // « 100% » ne retourne pas tout le monde.

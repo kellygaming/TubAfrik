@@ -3,6 +3,7 @@ import { Outfit, Unbounded } from "next/font/google";
 import { SITE_URL } from "@/lib/format";
 import { getSession } from "@/lib/session";
 import { SessionProvider } from "@/components/session";
+import { StoreAppDetector } from "@/components/StoreAppDetector";
 import "./globals.css";
 
 const outfit = Outfit({ variable: "--font-outfit", subsets: ["latin"], display: "swap" });
@@ -39,6 +40,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <SessionProvider key={profile?.username ?? user?.id ?? "invite"} initial={{ userId: user?.id ?? null, profile }}>
           {children}
         </SessionProvider>
+        <StoreAppDetector />
       </body>
     </html>
   );

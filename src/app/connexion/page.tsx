@@ -79,6 +79,11 @@ export default async function LoginPage({ searchParams }: PageProps<"/connexion"
             {" · "}
             <Link href="/gagner" className="underline-offset-2 hover:text-text hover:underline">Gagner sur TubAfrik</Link>
           </p>
+          <p className="mt-2 text-center text-[11px] text-muted">
+            En continuant, tu acceptes les{" "}
+            <Link href="/conditions" className="underline underline-offset-2">conditions</Link> et la{" "}
+            <Link href="/confidentialite" className="underline underline-offset-2">politique de confidentialité</Link>.
+          </p>
         </div>
       </section>
     </main>

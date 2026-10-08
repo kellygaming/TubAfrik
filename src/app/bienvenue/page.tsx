@@ -8,8 +8,20 @@ export const metadata: Metadata = { title: "Bienvenue" };
 export default async function WelcomePage({ searchParams }: PageProps<"/bienvenue">) {
   const sp = await searchParams;
   const next = typeof sp.next === "string" && sp.next.startsWith("/") && !sp.next.startsWith("//") ? sp.next : "/";
-  const { user, profile } = await getSession();
+  const session = await getSession();
+  const { user, profile } = session;
   if (!user) redirect("/connexion");
+  if ("deleted" in session && session.deleted) {
+    return (
+      <main className="mx-auto grid min-h-dvh max-w-md place-items-center px-6 text-center">
+        <div>
+          <p className="text-5xl">👋</p>
+          <h1 className="mt-4 text-xl font-bold">Ce compte TubAfrik a été supprimé</h1>
+          <p className="mt-2 text-sm text-muted">Pour en recréer un, écris-nous depuis cette adresse e-mail.</p>
+        </div>
+      </main>
+    );
+  }
   if (profile) redirect(next);
 
   const meta = user.user_metadata ?? {};

@@ -11,6 +11,7 @@ import { Sheet } from "../Sheet";
 import { loginHref, useSession } from "../session";
 import { CauriIcon, giftCost, useCauris } from "../cauris/cauris";
 import { RechargePanel } from "../cauris/RechargePanel";
+import { useStoreApp } from "@/lib/appMode";
 
 export type SupportTarget = {
   creatorId: string;
@@ -48,6 +49,8 @@ export function SupportSheet({ target, onClose }: { target: SupportTarget | null
   const [sent, setSent] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const wallet = useCauris(target ? userId : null);
+  // Dans l'app Play Store: on dépense ses Cauris, on n'en achète pas.
+  const storeApp = useStoreApp();
 
   useEffect(() => {
     if (!target) return;
@@ -187,9 +190,11 @@ export function SupportSheet({ target, onClose }: { target: SupportTarget | null
                   <span className="font-bold">{wallet.balance ?? "…"}</span>
                   <span className="text-muted">Cauris</span>
                 </span>
-                <button type="button" onClick={() => setView("recharge")} className="rounded-full bg-gold px-3 py-1 text-xs font-bold text-black">
-                  + Recharger
-                </button>
+                {!storeApp && (
+                  <button type="button" onClick={() => setView("recharge")} className="rounded-full bg-gold px-3 py-1 text-xs font-bold text-black">
+                    + Recharger
+                  </button>
+                )}
               </div>
 
               <div role="radiogroup" aria-label="Choisis ton cadeau" className="mt-3 grid grid-cols-2 gap-2.5">
@@ -233,13 +238,17 @@ export function SupportSheet({ target, onClose }: { target: SupportTarget | null
                   className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-gold font-bold text-black transition active:scale-[0.98] disabled:opacity-50">
                   {busy ? "Envoi…" : gift ? <>Offrir {gift.emoji} {gift.name} · {cost} <CauriIcon size={18} /></> : "Offrir"}
                 </button>
+              ) : storeApp ? (
+                <button disabled className="mt-4 h-12 w-full rounded-full bg-surface-2 font-semibold text-muted">
+                  Solde insuffisant
+                </button>
               ) : (
                 <button onClick={() => setView("recharge")} disabled={!gift || wallet.balance === null}
                   className="mt-4 h-12 w-full rounded-full bg-gold font-bold text-black transition active:scale-[0.98] disabled:opacity-50">
                   {wallet.balance === null ? "…" : `Recharger pour offrir (il manque ${cost - balance} Cauris)`}
                 </button>
               )}
-              {gift && (
+              {gift && !storeApp && (
                 <button onClick={() => setView("direct")} className="mt-2 block w-full py-2 text-center text-xs text-muted underline-offset-2 hover:underline">
                   ou payer ce cadeau seul en mobile money ({fcfa(gift.price_fcfa)})
                 </button>
