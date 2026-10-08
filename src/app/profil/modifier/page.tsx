@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { supabaseServer } from "@/lib/supabase/server";
+import { currentUser, supabaseServer } from "@/lib/supabase/server";
 import { ProfileForm } from "@/components/profile/ProfileForm";
 import { SignOutButton } from "@/components/profile/SignOutButton";
 
@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Modifier mon profil" };
 
 export default async function EditProfilePage() {
   const supabase = await supabaseServer();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await currentUser();
   if (!user) redirect("/connexion?next=/profil/modifier");
   const { data: p } = await supabase
     .from("tub_profiles").select("username,display_name,avatar_url,bio,main_game,main_category,interests,country").eq("id", user.id).maybeSingle();

@@ -11,6 +11,7 @@ import { bumpInterest, topInterests } from "@/lib/interests";
 import { loginHref, useSession } from "../session";
 import { LeafIcon, SearchIcon } from "../icons";
 import { LogoMark } from "../Logo";
+import { LinkPending } from "../LinkPending";
 import { VideoSlide } from "./VideoSlide";
 import { CommentsSheet } from "./CommentsSheet";
 import { ShareSheet } from "./ShareSheet";
@@ -298,6 +299,7 @@ function FeedHeader({
     >
       {label}
       {mode === m && <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-white" />}
+      <LinkPending className="rounded-md" />
     </Link>
   );
 
@@ -363,11 +365,12 @@ function Chip({ href, active, small, children }: { href: string; active: boolean
       href={href}
       scroll={false}
       aria-current={active ? "page" : undefined}
-      className={`shrink-0 rounded-full px-3 font-medium backdrop-blur transition ${small ? "py-0.5 text-[11px]" : "py-1 text-xs"} ${
+      className={`relative shrink-0 rounded-full px-3 font-medium backdrop-blur transition active:scale-95 ${small ? "py-0.5 text-[11px]" : "py-1 text-xs"} ${
         active ? "bg-white text-bg" : "bg-white/15 text-white hover:bg-white/25"
       }`}
     >
       {children}
+      <LinkPending />
     </Link>
   );
 }

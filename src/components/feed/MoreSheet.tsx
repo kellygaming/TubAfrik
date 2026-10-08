@@ -5,7 +5,7 @@ import { useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import type { FeedItem } from "@/lib/types";
 import { Sheet } from "../Sheet";
-import { CheckIcon, FlagIcon, LeafIcon, TrashIcon } from "../icons";
+import { CheckIcon, DownloadIcon, FlagIcon, LeafIcon, TrashIcon } from "../icons";
 import { loginHref, useSession } from "../session";
 import { useFeedSettings } from "./useFeedSettings";
 
@@ -33,6 +33,7 @@ export function MoreSheet({
   const [step, setStep] = useState<"menu" | "report" | "done" | "confirm-delete">("menu");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [dl, setDl] = useState<"idle" | "busy" | "started" | "error">("idle");
 
   if (!item) return null;
   const isOwner = item.author_id === userId;
@@ -40,7 +41,23 @@ export function MoreSheet({
   function close() {
     setStep("menu");
     setMessage(null);
+    setDl("idle");
     onClose();
+  }
+
+  // On vérifie d'abord qu'un MP4 existe, puis le navigateur télécharge
+  // sans quitter la page (le serveur répond en « pièce jointe »).
+  async function download() {
+    setDl("busy");
+    const res = await fetch(`/api/videos/${item!.id}/telecharger?check=1`).catch(() => null);
+    if (!res?.ok) return setDl("error");
+    const a = document.createElement("a");
+    a.href = `/api/videos/${item!.id}/telecharger`;
+    a.download = "";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setDl("started");
   }
 
   async function report(reason: string) {
@@ -78,6 +95,15 @@ export function MoreSheet({
               </span>
               <span className={`h-6 w-10 rounded-full p-0.5 transition ${dataSaver ? "bg-ok" : "bg-surface-2"}`}>
                 <span className={`block h-5 w-5 rounded-full bg-white transition ${dataSaver ? "translate-x-4" : ""}`} />
+              </span>
+            </button>
+            <button className={row} onClick={download} disabled={dl === "busy"}>
+              <DownloadIcon />
+              <span className="flex-1">
+                {dl === "busy" ? "Préparation…" : dl === "started" ? "Téléchargement lancé ✓" : "Enregistrer la vidéo"}
+                <span className={`block text-xs ${dl === "error" ? "text-like" : "text-muted"}`}>
+                  {dl === "error" ? "Pas encore disponible pour cette vidéo." : "Avec le logo TubAfrik"}
+                </span>
               </span>
             </button>
             {isOwner ? (

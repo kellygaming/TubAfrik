@@ -114,6 +114,11 @@ export const LeafIcon = (p: P) => (
     <path d="M5 19c0-8 5-13 15-14-1 10-6 15-14 15M5 19l7-7" />
   </svg>
 );
+export const DownloadIcon = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14" />
+  </svg>
+);
 export const UploadIcon = (p: P) => (
   <svg {...base(p)}>
     <path d="M12 16V4m0 0-5 5m5-5 5 5M4 20h16" />

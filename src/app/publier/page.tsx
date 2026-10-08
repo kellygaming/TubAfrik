@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { supabaseServer } from "@/lib/supabase/server";
+import { currentUser, supabaseServer } from "@/lib/supabase/server";
 import { UploadForm } from "@/components/upload/UploadForm";
 
 export const metadata: Metadata = { title: "Publier" };
 
 export default async function PublishPage() {
   const supabase = await supabaseServer();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await currentUser();
   if (!user) redirect("/connexion?next=/publier");
   const { data: profile } = await supabase.from("tub_profiles").select("username,main_game,main_category").eq("id", user.id).maybeSingle();
   if (!profile) redirect("/bienvenue?next=/publier");

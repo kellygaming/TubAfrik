@@ -13,7 +13,8 @@ export default async function WelcomePage({ searchParams }: PageProps<"/bienvenu
   if (profile) redirect(next);
 
   const meta = user.user_metadata ?? {};
-  const fullName: string = meta.full_name || meta.name || "";
+  const str = (v: unknown) => (typeof v === "string" ? v : "");
+  const fullName = str(meta.full_name) || str(meta.name);
   // Pseudo proposé à partir de l'adresse: « kelly.yt@gmail.com » → « kelly.yt ».
   const suggestion = (user.email ?? "").split("@")[0].toLowerCase().replace(/[^a-z0-9_.]/g, "").slice(0, 24);
 

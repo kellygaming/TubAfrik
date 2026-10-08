@@ -19,8 +19,22 @@ export async function supabaseServer() {
   });
 }
 
-export async function currentUser() {
+export type SessionUser = { id: string; email: string | null; user_metadata: Record<string, unknown> };
+
+/**
+ * L'utilisateur connecté, d'après son jeton (signature vérifiée par
+ * getClaims). Plus d'aller-retour réseau vers le serveur d'auth à chaque
+ * page: c'était ce qui faisait « traîner » chaque tap. Le proxy rafraîchit
+ * déjà la session avant le rendu.
+ */
+export async function currentUser(): Promise<SessionUser | null> {
   const supabase = await supabaseServer();
-  const { data } = await supabase.auth.getUser();
-  return data.user;
+  const { data } = await supabase.auth.getClaims();
+  const c = data?.claims;
+  if (!c?.sub) return null;
+  return {
+    id: c.sub,
+    email: typeof c.email === "string" ? c.email : null,
+    user_metadata: (c.user_metadata as Record<string, unknown> | undefined) ?? {},
+  };
 }
