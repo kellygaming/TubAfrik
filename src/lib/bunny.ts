@@ -59,6 +59,11 @@ export async function getBunnyVideo(guid: string): Promise<BunnyVideo> {
   return (await res.json()) as BunnyVideo;
 }
 
+// Relance l'encodage complet d'une vidéo (restée bloquée en JIT).
+export async function reencodeBunnyVideo(guid: string) {
+  await bunny(`/videos/${encodeURIComponent(guid)}/reencode`, { method: "POST" });
+}
+
 export async function deleteBunnyVideo(guid: string) {
   await bunny(`/videos/${encodeURIComponent(guid)}`, { method: "DELETE" });
 }
@@ -70,34 +75,12 @@ export function tusCredentials(guid: string, ttlSeconds = 6 * 3600) {
   return { endpoint: TUS_ENDPOINT, libraryId: LIBRARY_ID, videoId: guid, expire, signature };
 }
 
-const CDN = process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME;
-
-// En JIT, le statut 8 arrive parfois avant que la vidéo soit vraiment
-// servie: la liste de lecture existe mais ses morceaux non, et le fil
-// montre un écran noir. On vérifie donc, comme le ferait un lecteur, que
-// la première qualité répond avec au moins un segment.
-export async function jitPlayable(guid: string): Promise<boolean> {
-  if (!CDN) return true;
-  const headers = { Referer: "https://www.tubafrik.com/" };
-  try {
-    const master = `https://${CDN}/${guid}/playlist.m3u8`;
-    const res = await fetch(master, { headers, cache: "no-store", signal: AbortSignal.timeout(5000) });
-    if (!res.ok) return false;
-    const variant = (await res.text()).split("\n").map((l) => l.trim()).find((l) => l && !l.startsWith("#"));
-    if (!variant) return false;
-    const v = await fetch(new URL(variant, master), { headers, cache: "no-store", signal: AbortSignal.timeout(5000) });
-    return v.ok && (await v.text()).includes("#EXTINF");
-  } catch {
-    return false;
-  }
-}
-
 // Traduit l'état Bunny en état TubAfrik. `null` = rien de nouveau.
-// Avec l'encodage JIT (Premium Encoding), Bunny rend la vidéo lisible
-// dès que les listes de lecture sont créées (statut 8), quelques
-// secondes après l'envoi, et finit d'encoder en arrière-plan.
+// Seul l'encodage TERMINÉ (4) publie la vidéo. Le 08/10, le mode JIT
+// (statuts 7/8 « Jit playable ») annonçait des vidéos lisibles qui
+// n'avaient aucun fichier (0 octet): écran noir dans le fil.
 export function statusFromBunny(v: BunnyVideo): "processing" | "ready" | "failed" | null {
-  if (v.status === BUNNY_STATUS.FINISHED || v.status === BUNNY_STATUS.JIT_PLAYLISTS_CREATED) return "ready";
+  if (v.status === BUNNY_STATUS.FINISHED) return "ready";
   if (v.status === BUNNY_STATUS.ERROR || v.status === BUNNY_STATUS.UPLOAD_FAILED) return "failed";
   if (v.status === BUNNY_STATUS.CREATED) return null;
   return "processing";

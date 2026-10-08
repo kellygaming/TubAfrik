@@ -1,6 +1,6 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { BUNNY_STATUS, deleteBunnyVideo, getBunnyVideo, jitPlayable, statusFromBunny } from "@/lib/bunny";
+import { BUNNY_STATUS, deleteBunnyVideo, getBunnyVideo, reencodeBunnyVideo, statusFromBunny } from "@/lib/bunny";
 
 type VideoRef = { id: string; bunny_id: string; status?: string };
 
@@ -13,10 +13,8 @@ export async function syncVideo(video: VideoRef) {
   if (video.status === "ready") return refreshMetadata(video);
 
   const b = await getBunnyVideo(video.bunny_id);
-  let status = statusFromBunny(b);
+  const status = statusFromBunny(b);
   if (!status) return { status: video.status ?? "uploading", progress: 0 };
-  // Publiée seulement si elle se lit vraiment; sinon on repassera (webhook, cron).
-  if (status === "ready" && b.status !== BUNNY_STATUS.FINISHED && !(await jitPlayable(video.bunny_id))) status = "processing";
 
   const patch: Record<string, unknown> = { status };
   if (status === "ready") {
@@ -26,6 +24,7 @@ export async function syncVideo(video: VideoRef) {
       height: b.height || null,
       thumbnail_file: b.thumbnailFileName || null,
       published_at: new Date().toISOString(),
+      encoded_at: new Date().toISOString(),
     });
   }
 
@@ -37,9 +36,7 @@ export async function syncVideo(video: VideoRef) {
   return { status, progress: b.encodeProgress ?? 0 };
 }
 
-// Une vidéo publiée en JIT n'a pas encore sa durée ni sa miniature
-// définitives: Bunny les donne à la fin de l'encodage complet, et le
-// webhook « terminé » nous ramène ici pour les compléter.
+// Vidéo déjà publiée: le webhook « terminé » complète durée et miniature.
 async function refreshMetadata(video: VideoRef) {
   const b = await getBunnyVideo(video.bunny_id);
   if (b.status === BUNNY_STATUS.FINISHED) {
@@ -50,10 +47,39 @@ async function refreshMetadata(video: VideoRef) {
         width: b.width || null,
         height: b.height || null,
         thumbnail_file: b.thumbnailFileName || null,
+        encoded_at: new Date().toISOString(),
       })
       .eq("id", video.id).eq("status", "ready");
   }
   return { status: "ready", progress: b.encodeProgress ?? 100 };
+}
+
+// RÉPARATION — vidéos publiées avant le 08/10 alors que Bunny ne les avait
+// qu'en JIT (aucun fichier). Terminée chez Bunny: on note l'encodage.
+// Restée en JIT: on relance un encodage complet et on la retire du fil le
+// temps qu'il se fasse; le cron la republie dès qu'elle est prête.
+export async function repairVideo(video: { id: string; bunny_id: string }) {
+  const b = await getBunnyVideo(video.bunny_id);
+  const db = supabaseAdmin();
+  if (b.status === BUNNY_STATUS.FINISHED) {
+    await db.from("tub_videos").update({
+      encoded_at: new Date().toISOString(),
+      duration_s: b.length || null,
+      width: b.width || null,
+      height: b.height || null,
+      thumbnail_file: b.thumbnailFileName || null,
+    }).eq("id", video.id).eq("status", "ready");
+    return "ok";
+  }
+  if (b.status === BUNNY_STATUS.ERROR || b.status === BUNNY_STATUS.UPLOAD_FAILED) {
+    await db.from("tub_videos").update({ status: "failed" }).eq("id", video.id).eq("status", "ready");
+    return "failed";
+  }
+  if (b.status === BUNNY_STATUS.JIT_SEGMENTING || b.status === BUNNY_STATUS.JIT_PLAYLISTS_CREATED) {
+    await reencodeBunnyVideo(video.bunny_id);
+  }
+  await db.from("tub_videos").update({ status: "processing" }).eq("id", video.id).eq("status", "ready");
+  return "reencoding";
 }
 
 export async function removeVideo(video: VideoRef) {

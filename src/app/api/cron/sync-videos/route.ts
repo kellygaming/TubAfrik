@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { syncVideo } from "@/lib/sync";
+import { repairVideo, syncVideo } from "@/lib/sync";
 import { confirmPayment } from "@/lib/payments";
 import { confirmCauriPurchase } from "@/lib/cauris";
 
@@ -24,11 +24,13 @@ export async function GET(request: NextRequest) {
 
   const db = supabaseAdmin();
   const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+  const week = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
   const { data: pending } = await db
     .from("tub_videos")
     .select("id,bunny_id,status")
     .in("status", ["uploading", "processing"])
-    .gte("created_at", since)
+    // Les nouvelles (24 h), plus celles déjà publiées puis renvoyées à l'encodage.
+    .or(`created_at.gte.${since},published_at.gte.${week}`)
     .order("created_at", { ascending: true })
     .limit(MAX_PER_RUN);
 
@@ -40,7 +42,19 @@ export async function GET(request: NextRequest) {
     .from("tub_videos")
     .update({ status: "failed" })
     .in("status", ["uploading", "processing"])
-    .lt("created_at", since);
+    .lt("created_at", since)
+    .or(`published_at.is.null,published_at.lt.${week}`);
+
+  // Publiées sans encodage complet confirmé (JIT): on vérifie, on répare.
+  const { data: unchecked } = await db
+    .from("tub_videos")
+    .select("id,bunny_id")
+    .eq("status", "ready")
+    .is("encoded_at", null)
+    .lte("published_at", new Date(Date.now() - 5 * 60 * 1000).toISOString())
+    .order("published_at", { ascending: true })
+    .limit(10);
+  const repaired = await Promise.allSettled((unchecked ?? []).map((v) => repairVideo(v)));
 
   // Cadeaux: un Pulse Chariow perdu ne doit pas laisser un fan payé sans
   // son VIP ni un TubAfrikain sans son gain. On redemande à Chariow.
@@ -72,5 +86,7 @@ export async function GET(request: NextRequest) {
   await db.from("tub_payments").update({ status: "failed" }).eq("status", "pending").lt("created_at", since);
   await db.from("tub_cauri_purchases").update({ status: "failed" }).eq("status", "pending").lt("created_at", since);
 
-  return NextResponse.json({ checked: pending?.length ?? 0, published, payments: payments?.length ?? 0, paid });
+  return NextResponse.json({
+    checked: pending?.length ?? 0, published,
+    repaired: repaired.map((r) => (r.status === "fulfilled" ? r.value : "erreur")), payments: payments?.length ?? 0, paid });
 }
