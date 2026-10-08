@@ -57,6 +57,7 @@ async function anonymize(formData: FormData) {
     username: `supprime_${id.replace(/-/g, "").slice(0, 12)}`,
     display_name: "Compte supprimé",
     avatar_url: null,
+    cover_url: null,
     bio: null,
     main_game: null,
     main_category: null,
@@ -65,6 +66,9 @@ async function anonymize(formData: FormData) {
     live_enabled: false,
     deleted_at: now,
   }).eq("id", id);
+  // Photo de profil et couverture: les fichiers publics disparaissent aussi.
+  const { data: files } = await db.storage.from("tub-avatars").list(id);
+  if (files?.length) await db.storage.from("tub-avatars").remove(files.map((f) => `${id}/${f.name}`));
   await db.from("tub_account_deletions").update({ processed_at: now }).eq("user_id", id);
   revalidatePath("/admin/comptes");
 }

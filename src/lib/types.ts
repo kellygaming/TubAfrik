@@ -25,6 +25,7 @@ export type Profile = {
   username: string;
   display_name: string;
   avatar_url: string | null;
+  cover_url: string | null;
   bio: string | null;
   main_game: string | null;
   main_category: string | null;

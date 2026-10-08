@@ -7,11 +7,13 @@ import { GAMES } from "@/lib/games";
 import { CATEGORIES } from "@/lib/categories";
 import { COUNTRIES, flag } from "@/lib/countries";
 import { AvatarPicker } from "./AvatarPicker";
+import { CoverPicker } from "./CoverPicker";
 
 type Values = {
   username: string;
   display_name: string;
   avatar_url: string | null;
+  cover_url?: string | null;
   bio: string;
   main_game: string | null;
   main_category: string | null;
@@ -75,6 +77,8 @@ export function ProfileForm({
 
   return (
     <form onSubmit={submit} className="space-y-6">
+      {/* La ligne de profil doit exister pour y enregistrer la couverture. */}
+      {mode === "edit" && <CoverPicker userId={userId} value={v.cover_url ?? null} onChange={(url) => set("cover_url", url)} />}
       <AvatarPicker
         userId={userId}
         name={v.display_name || v.username}

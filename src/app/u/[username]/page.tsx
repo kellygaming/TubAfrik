@@ -36,7 +36,7 @@ async function loadProfile(username: string) {
   const supabase = await supabaseServer();
   const { data } = await supabase
     .from("tub_profiles")
-    .select("id,username,display_name,avatar_url,bio,main_game,main_category,country,followers_count,following_count,videos_count")
+    .select("id,username,display_name,avatar_url,cover_url,bio,main_game,main_category,country,followers_count,following_count,videos_count")
     .eq("username", username.toLowerCase())
     .maybeSingle();
   return data as Profile | null;
@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: PageProps<"/u/[username]">): 
   return {
     title: `${p.display_name} (@${p.username})`,
     description: p.bio || `Les vidéos de ${p.display_name} sur TubAfrik`,
-    openGraph: { images: p.avatar_url ? [p.avatar_url] : [] },
+    openGraph: { images: p.cover_url ? [p.cover_url] : p.avatar_url ? [p.avatar_url] : [] },
   };
 }
 
@@ -95,8 +95,17 @@ export default async function ProfilePage({ params }: PageProps<"/u/[username]">
 
   return (
     <main className="mx-auto min-h-dvh max-w-2xl pb-24">
-      <header className="relative px-5 pt-[calc(env(safe-area-inset-top)+28px)] pb-6 text-center">
-        <div className="relative flex flex-col items-center">
+      <header className="relative pb-6 text-center">
+        <div className="cover-fallback relative h-[calc(env(safe-area-inset-top)+128px)] w-full overflow-hidden sm:h-[calc(env(safe-area-inset-top)+190px)] sm:rounded-b-3xl">
+          {p.cover_url && <img src={p.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />}
+          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-bg/80 to-transparent" />
+          {isSelf && (
+            <Link href="/profil/modifier" className="absolute right-3 top-[calc(env(safe-area-inset-top)+12px)] rounded-full bg-black/50 px-3 py-1.5 text-xs font-semibold backdrop-blur">
+              {p.cover_url ? "Changer la couverture" : "＋ Couverture"}
+            </Link>
+          )}
+        </div>
+        <div className="relative -mt-12 flex flex-col items-center px-5">
           {onAir ? (
             <Link href={`/live/${onAir.id}`} aria-label={`${p.display_name} est en direct`} className="relative">
               <Avatar src={p.avatar_url} name={p.display_name} size={96} className="ring-4 ring-like" />
@@ -141,7 +150,13 @@ export default async function ProfilePage({ params }: PageProps<"/u/[username]">
             })}
           </dl>
 
-          {p.bio && <p className="mt-4 max-w-sm whitespace-pre-line text-sm text-text/90">{p.bio}</p>}
+          {p.bio ? (
+            <p className="mt-4 max-w-sm whitespace-pre-line text-sm text-text/90">{p.bio}</p>
+          ) : isSelf ? (
+            <Link href="/profil/modifier" className="mt-4 rounded-full border border-dashed border-line px-4 py-1.5 text-sm text-muted hover:text-text">
+              ＋ Ajouter une bio
+            </Link>
+          ) : null}
 
           <div className="mt-5 flex w-full max-w-xs gap-2">
             {isSelf ? (

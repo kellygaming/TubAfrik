@@ -153,6 +153,14 @@
     border-radius: 3px;
     background: repeating-linear-gradient(90deg, #f4b400 0 14px, #ff6b1a 14px 20px, #000 20px 22px);
   }
+  /* Couverture par défaut: nuit profonde et un fil de kente en bas. */
+  .cover-fallback {
+    background:
+      linear-gradient(to bottom, transparent calc(100% - 4px), #f4b400 calc(100% - 4px)),
+      radial-gradient(120% 140% at 85% 0%, rgba(244, 180, 0, 0.22), transparent 55%),
+      radial-gradient(90% 120% at 10% 100%, rgba(255, 107, 26, 0.16), transparent 60%),
+      #111;
+  }
 }
 
 @keyframes vip-sheen {

@@ -6,6 +6,7 @@ import type { Upload } from "tus-js-client";
 import { GAMES } from "@/lib/games";
 import { CATEGORIES, isCategorySlug } from "@/lib/categories";
 import { CheckIcon, UploadIcon } from "../icons";
+import { TipsCarousel } from "./TipsCarousel";
 
 const MAX_BYTES = 300 * 1024 * 1024;
 const MAX_SECONDS = 180;
@@ -168,7 +169,7 @@ export function UploadForm({
         </button>
         <input ref={inputRef} type="file" accept="video/*" hidden onChange={(e) => pick(e.target.files?.[0])} />
         {problem && <p role="alert" className="mt-4 rounded-xl bg-like/10 px-4 py-3 text-sm text-like">{problem}</p>}
-        <Tips />
+        <TipsCarousel className="mt-6" />
       </div>
     );
   }
@@ -268,6 +269,8 @@ export function UploadForm({
           Aller sur mon profil
         </Link>
       )}
+
+      <TipsCarousel />
     </div>
   );
 }
@@ -296,16 +299,6 @@ function Progress({ label, pct, hint }: { label: string; pct: number; hint: stri
       </div>
       <p className="mt-3 text-xs text-muted">{hint}</p>
     </div>
-  );
-}
-
-function Tips() {
-  return (
-    <ul className="mt-6 space-y-2 text-sm text-muted">
-      <li>🎯 Les 2 premières secondes décident de tout : commence fort.</li>
-      <li>📱 Filme ou recadre en vertical (9:16) pour remplir l&apos;écran.</li>
-      <li>🎵 Évite la musique protégée : ta vidéo pourrait être retirée.</li>
-    </ul>
   );
 }
 

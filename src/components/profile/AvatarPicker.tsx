@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { resizeImage } from "@/lib/resizeImage";
 import { Avatar } from "../Avatar";
 import { CameraIcon } from "../icons";
 
@@ -17,32 +18,6 @@ import { CameraIcon } from "../icons";
 // ═══════════════════════════════════════════════════════════════
 const SIZE = 384;
 
-async function squareResize(file: File): Promise<Blob> {
-  const url = URL.createObjectURL(file);
-  try {
-    const img = await new Promise<HTMLImageElement>((ok, ko) => {
-      const i = new Image();
-      i.onload = () => ok(i);
-      i.onerror = () => ko(new Error("Image illisible"));
-      i.src = url;
-    });
-    const side = Math.min(img.naturalWidth, img.naturalHeight);
-    const canvas = document.createElement("canvas");
-    canvas.width = canvas.height = Math.min(SIZE, side);
-    const ctx = canvas.getContext("2d")!;
-    ctx.drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, canvas.width, canvas.height);
-    // Safari (iPhone) ne sait pas encoder le WebP: il rend un PNG lourd à
-    // la place. On le détecte et on repasse en JPEG, accepté partout.
-    let blob = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, "image/webp", 0.85));
-    if (!blob || blob.type !== "image/webp") {
-      blob = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, "image/jpeg", 0.88));
-    }
-    if (!blob) throw new Error("Conversion impossible");
-    return blob;
-  } finally {
-    URL.revokeObjectURL(url);
-  }
-}
 
 export function AvatarPicker({
   userId,
@@ -77,7 +52,7 @@ export function AvatarPicker({
     if (!file.type.startsWith("image/")) return setError("Choisis une image (JPG, PNG ou WebP).");
     setBusy(true);
     try {
-      const blob = await squareResize(file);
+      const blob = await resizeImage(file, SIZE, SIZE);
       const supabase = supabaseBrowser();
       const ext = blob.type === "image/webp" ? "webp" : "jpg";
       const path = `${userId}/avatar.${ext}`;
