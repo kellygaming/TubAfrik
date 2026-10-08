@@ -1,6 +1,6 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { BUNNY_STATUS, deleteBunnyVideo, getBunnyVideo, statusFromBunny } from "@/lib/bunny";
+import { BUNNY_STATUS, deleteBunnyVideo, getBunnyVideo, jitPlayable, statusFromBunny } from "@/lib/bunny";
 
 type VideoRef = { id: string; bunny_id: string; status?: string };
 
@@ -13,8 +13,10 @@ export async function syncVideo(video: VideoRef) {
   if (video.status === "ready") return refreshMetadata(video);
 
   const b = await getBunnyVideo(video.bunny_id);
-  const status = statusFromBunny(b);
+  let status = statusFromBunny(b);
   if (!status) return { status: video.status ?? "uploading", progress: 0 };
+  // Publiée seulement si elle se lit vraiment; sinon on repassera (webhook, cron).
+  if (status === "ready" && b.status !== BUNNY_STATUS.FINISHED && !(await jitPlayable(video.bunny_id))) status = "processing";
 
   const patch: Record<string, unknown> = { status };
   if (status === "ready") {

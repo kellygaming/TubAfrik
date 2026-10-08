@@ -53,7 +53,7 @@ export function VideoSlide(props: Props) {
   const [duration, setDuration] = useState(0);
   const scrubWasPlaying = useRef(false);
 
-  useHlsPlayer(videoRef, playlistUrl(item.bunny_id), { load, active, dataSaver });
+  const { stuck } = useHlsPlayer(videoRef, playlistUrl(item.bunny_id), { load, active, dataSaver });
   const gifts = useGiftBursts(item.id, active);
 
   const activeRef = useRef(active);
@@ -283,7 +283,17 @@ export function VideoSlide(props: Props) {
 
       {gifts.current && <GiftBurst key={gifts.current.key} burst={gifts.current} onDone={gifts.done} />}
 
-      {paused && (
+      {active && stuck && (
+        <div className="pointer-events-none absolute inset-0 grid place-items-center px-10 text-center">
+          <div className="animate-fade flex flex-col items-center gap-3 rounded-2xl bg-black/60 px-5 py-4 backdrop-blur">
+            <span className="h-7 w-7 animate-spin rounded-full border-2 border-white/25 border-t-gold" />
+            <p className="text-sm font-semibold">Vidéo en cours de préparation…</p>
+            <p className="text-xs text-white/70">Elle se lancera toute seule. Glisse pour passer à la suivante.</p>
+          </div>
+        </div>
+      )}
+
+      {paused && !stuck && (
         <div className="pointer-events-none absolute inset-0 grid place-items-center">
           <span className="grid h-20 w-20 place-items-center rounded-full bg-black/40 backdrop-blur-sm">
             <PlayIcon width={40} height={40} className="ml-1 text-white/90" />

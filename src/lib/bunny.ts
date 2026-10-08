@@ -70,6 +70,28 @@ export function tusCredentials(guid: string, ttlSeconds = 6 * 3600) {
   return { endpoint: TUS_ENDPOINT, libraryId: LIBRARY_ID, videoId: guid, expire, signature };
 }
 
+const CDN = process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME;
+
+// En JIT, le statut 8 arrive parfois avant que la vidéo soit vraiment
+// servie: la liste de lecture existe mais ses morceaux non, et le fil
+// montre un écran noir. On vérifie donc, comme le ferait un lecteur, que
+// la première qualité répond avec au moins un segment.
+export async function jitPlayable(guid: string): Promise<boolean> {
+  if (!CDN) return true;
+  const headers = { Referer: "https://www.tubafrik.com/" };
+  try {
+    const master = `https://${CDN}/${guid}/playlist.m3u8`;
+    const res = await fetch(master, { headers, cache: "no-store", signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return false;
+    const variant = (await res.text()).split("\n").map((l) => l.trim()).find((l) => l && !l.startsWith("#"));
+    if (!variant) return false;
+    const v = await fetch(new URL(variant, master), { headers, cache: "no-store", signal: AbortSignal.timeout(5000) });
+    return v.ok && (await v.text()).includes("#EXTINF");
+  } catch {
+    return false;
+  }
+}
+
 // Traduit l'état Bunny en état TubAfrik. `null` = rien de nouveau.
 // Avec l'encodage JIT (Premium Encoding), Bunny rend la vidéo lisible
 // dès que les listes de lecture sont créées (statut 8), quelques

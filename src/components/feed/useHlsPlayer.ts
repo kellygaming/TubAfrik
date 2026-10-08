@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import type Hls from "hls.js";
 
 // ═══════════════════════════════════════════════════════════════
@@ -19,6 +19,13 @@ import type Hls from "hls.js";
 const DATA_SAVER_MAX_HEIGHT = 360;
 const BW_KEY = "tub_bw";
 const FALLBACK_BPS = 1_500_000; // première visite, réseau inconnu: 360p sûr
+
+// Une vidéo qui n'a rien affiché au bout de 10 s est considérée bloquée
+// (souvent: encodage pas encore servi par Bunny). On recharge la source
+// toutes les 8 s, sans fin tant qu'elle est à l'écran.
+const STALL_MS = 10_000;
+const RETRY_MS = 8_000;
+const MAX_RETRIES = 30;
 
 let knownBandwidth: number | null = null;
 
@@ -48,6 +55,10 @@ export function useHlsPlayer(
   { load, active, dataSaver }: { load: boolean; active: boolean; dataSaver: boolean },
 ) {
   const hlsRef = useRef<Hls | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const [stuck, setStuck] = useState(false);
+  // Des morceaux arrivent: lente peut-être, mais pas bloquée (3G).
+  const gotData = useRef(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -82,14 +93,19 @@ export function useHlsPlayer(
           hls.autoLevelCapping = cap;
         });
         hls.on(HlsClass.Events.FRAG_LOADED, () => {
+          gotData.current = true;
           if (hls) rememberBandwidth(hls.bandwidthEstimate);
+        });
+        hls.on(HlsClass.Events.ERROR, (_e, data) => {
+          if (data.fatal) setStuck(true);
         });
         hls.loadSource(src);
         hls.attachMedia(video);
         hlsRef.current = hls;
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
         // Safari iOS lit HLS lui-même (sans plafond possible).
-        video.src = src;
+        // Après un échec, un paramètre neuf contourne le cache du navigateur.
+        video.src = attempt ? `${src}?r=${attempt}` : src;
       }
     })();
 
@@ -100,10 +116,46 @@ export function useHlsPlayer(
       video.removeAttribute("src");
       video.load();
     };
-  }, [videoRef, src, load, dataSaver]);
+  }, [videoRef, src, load, dataSaver, attempt]);
+
+  // Erreurs du lecteur natif (Safari) et chien de garde: rien d'affiché à temps = bloquée.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !load || !active) return;
+    gotData.current = false;
+    const fail = () => setStuck(true);
+    const ok = () => setStuck(false);
+    const progress = () => {
+      if (video.buffered.length) gotData.current = true;
+    };
+    video.addEventListener("error", fail);
+    video.addEventListener("loadeddata", ok);
+    video.addEventListener("progress", progress);
+    const t = setTimeout(() => {
+      if (video.readyState < 2 && !gotData.current) setStuck(true);
+    }, STALL_MS);
+    return () => {
+      clearTimeout(t);
+      video.removeEventListener("error", fail);
+      video.removeEventListener("loadeddata", ok);
+      video.removeEventListener("progress", progress);
+    };
+  }, [videoRef, load, active, attempt]);
+
+  // Bloquée et à l'écran: on réessaie.
+  useEffect(() => {
+    if (!stuck || !active || attempt >= MAX_RETRIES) return;
+    const t = setTimeout(() => {
+      setStuck(false);
+      setAttempt((a) => a + 1);
+    }, RETRY_MS);
+    return () => clearTimeout(t);
+  }, [stuck, active, attempt]);
 
   // La suivante ne précharge que quelques secondes; l'active, davantage.
   useEffect(() => {
     if (hlsRef.current) hlsRef.current.config.maxBufferLength = active ? 10 : 3;
   }, [active, load]);
+
+  return { stuck };
 }
