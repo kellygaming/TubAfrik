@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { validPulseSignature } from "@/lib/chariow";
 import { confirmPayment } from "@/lib/payments";
+import { confirmCauriPurchase } from "@/lib/cauris";
 
 // ═══════════════════════════════════════════════════════════════
 // PULSE CHARIOW — « une vente vient de bouger »
@@ -22,6 +23,19 @@ export async function POST(request: Request) {
     event = JSON.parse(raw.toString("utf8"));
   } catch {
     return NextResponse.json({ ok: true });
+  }
+
+  const uuid = (v: unknown): v is string => typeof v === "string" && /^[0-9a-f-]{36}$/i.test(v);
+
+  // Achat d'un pack de Cauris.
+  const purchase = event.sale?.custom_metadata?.tub_cauri_purchase_id;
+  if (uuid(purchase)) {
+    try {
+      return NextResponse.json({ ok: true, status: await confirmCauriPurchase(purchase) });
+    } catch (e) {
+      console.error("[PULSE] Achat de Cauris en échec", purchase, (e as Error).message);
+      return NextResponse.json({ ok: true });
+    }
   }
 
   // Une vente qui n'est pas un cadeau TubAfrik (recharge Kelly Gaming…) ne nous concerne pas.

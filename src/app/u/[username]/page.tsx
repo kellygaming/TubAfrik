@@ -164,7 +164,9 @@ export default async function ProfilePage({ params }: PageProps<"/u/[username]">
           </div>
           {isSelf && (
             <p className="mt-3 text-xs text-muted">
-              <Link href="/gagner" className="hover:text-text">💰 Gagner sur TubAfrik</Link>
+              <Link href="/cauris" className="hover:text-text">🐚 Mes Cauris</Link>
+              <span className="mx-2">·</span>
+              <Link href="/gagner" className="hover:text-text">💰 Gagner</Link>
               <span className="mx-2">·</span>
               <Link href="/mission" className="hover:text-text">Notre mission</Link>
             </p>

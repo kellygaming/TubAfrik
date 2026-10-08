@@ -49,16 +49,20 @@ export default async function WithdrawalsAdmin() {
   if (!isAdminEmail(user?.email)) notFound();
 
   const db = supabaseAdmin();
-  const [{ data }, { data: totals }] = await Promise.all([
+  const [{ data }, { data: totals }, { data: packs }] = await Promise.all([
     db.from("tub_withdrawals")
       .select("id,amount_fcfa,method,phone,status,created_at,processed_at,admin_note,creator:tub_profiles(username,display_name)")
       .order("created_at", { ascending: false }).limit(100),
-    db.from("tub_payments").select("amount_fcfa,creator_share").eq("status", "paid"),
+    db.from("tub_payments").select("amount_fcfa,creator_share,source").eq("status", "paid"),
+    db.from("tub_cauri_purchases").select("amount_fcfa").eq("status", "paid"),
   ]);
   const rows = (data as unknown as Row[] | null) ?? [];
   const todo = rows.filter((r) => r.status === "en_attente");
   const done = rows.filter((r) => r.status !== "en_attente");
-  const revenue = (totals ?? []).reduce((s, p) => s + p.amount_fcfa, 0);
+  // Argent réellement encaissé: cadeaux payés directement + packs de Cauris
+  // (un cadeau payé en Cauris a déjà été encaissé lors de l'achat du pack).
+  const revenue = (totals ?? []).filter((p) => p.source !== "cauris").reduce((s, p) => s + p.amount_fcfa, 0)
+    + (packs ?? []).reduce((s, p) => s + p.amount_fcfa, 0);
   const share = (totals ?? []).reduce((s, p) => s + p.creator_share, 0);
   const label = (m: string) => PAYOUT_METHODS.find((x) => x.id === m)?.label ?? m;
 
@@ -70,9 +74,9 @@ export default async function WithdrawalsAdmin() {
       </div>
 
       <dl className="mt-4 grid grid-cols-3 gap-3 text-sm">
-        <Stat label="Cadeaux encaissés" value={fcfa(revenue)} />
+        <Stat label="Encaissé (cadeaux + Cauris)" value={fcfa(revenue)} />
         <Stat label="Part créateurs (80 %)" value={fcfa(share)} />
-        <Stat label="Part TubAfrik" value={fcfa(revenue - share)} />
+        <Stat label="Reste à TubAfrik" value={fcfa(revenue - share)} />
       </dl>
 
       <h2 className="mt-8 font-semibold">À payer ({todo.length})</h2>
