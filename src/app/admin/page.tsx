@@ -81,6 +81,7 @@ export default async function AdminPage() {
         <div className="flex gap-4 text-sm">
           <Link href="/admin/retraits" className="font-semibold">Retraits →</Link>
           <Link href="/admin/comptes" className="font-semibold">Comptes →</Link>
+          <Link href="/admin/lives" className="font-semibold">Lives →</Link>
           <Link href="/" className="text-muted hover:text-text">← Fil</Link>
         </div>
       </div>
