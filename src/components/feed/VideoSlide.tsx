@@ -364,7 +364,10 @@ export function VideoSlide(props: Props) {
             {item.caption}
           </p>
         )}
-        <div className="mt-2 flex items-center gap-2 text-xs text-white/80">
+        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs text-white/80">
+          {item.featured && (
+            <span className="rounded-full bg-gold px-2.5 py-1 font-bold text-black">{item.featured}</span>
+          )}
           {tag && (
             <Link href={tag.href} className="rounded-full bg-white/15 px-2.5 py-1 font-medium backdrop-blur-sm">
               {tag.label}

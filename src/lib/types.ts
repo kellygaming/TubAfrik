@@ -18,6 +18,8 @@ export type FeedItem = {
   display_name: string;
   avatar_url: string | null;
   category: string;
+  /** Vidéo mise en avant par l'équipe (challenge…): son badge. */
+  featured?: string;
 };
 
 export type Profile = {

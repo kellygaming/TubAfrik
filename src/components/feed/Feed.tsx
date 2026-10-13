@@ -49,6 +49,10 @@ export function Feed({
   const [done, setDone] = useState(initialItems.length === 0);
   const [loading, setLoading] = useState(false);
   const [active, setActive] = useState(0);
+  const activeRef = useRef(0);
+  useEffect(() => {
+    activeRef.current = active;
+  }, [active]);
   const [liked, setLiked] = useState<Set<string>>(new Set());
   const [following, setFollowing] = useState<Set<string>>(new Set());
   const [commentsFor, setCommentsFor] = useState<string | null>(null);
@@ -79,6 +83,30 @@ export function Feed({
     root.querySelectorAll("[data-index]").forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, [items.length]);
+
+  // ── Mise en avant (challenge…) ──
+  // Glissée en 2e position du fil « Pour toi », quelle que soit la catégorie
+  // choisie; le serveur ne la renvoie pas à qui l'a vue aujourd'hui ou hier.
+  useEffect(() => {
+    if (mode !== "pour-toi") return;
+    let cancelled = false;
+    supabaseBrowser()
+      .rpc("tub_featured", { p_anon_key: userId ? null : anonKey() })
+      .then(({ data }) => {
+        const picks = (data as FeedItem[] | null) ?? [];
+        if (cancelled || !picks.length) return;
+        setItems((prev) => {
+          const fresh = picks.filter((f) => !prev.some((i) => i.id === f.id));
+          if (!fresh.length) return prev;
+          // Juste après la vidéo en cours (la 2e si on vient d'arriver).
+          const at = Math.max(1, activeRef.current + 1);
+          return [...prev.slice(0, at), ...fresh, ...prev.slice(at)];
+        });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, userId]);
 
   // Le bouton cadeau n'apparaît que quand le catalogue est configuré.
   useEffect(() => {
