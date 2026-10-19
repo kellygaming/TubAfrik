@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: "Activité", robots: { index: false }
 
 type Row = {
   id: number;
-  kind: "gift" | "follow" | "comment" | "reply";
+  kind: "gift" | "follow" | "comment" | "reply" | "published";
   video_id: string | null;
   amount_fcfa: number | null;
   body: string | null;
@@ -67,6 +67,20 @@ function Item({ row }: { row: Row }) {
   const who = row.actor?.display_name ?? "Quelqu'un";
   const href = row.kind === "follow" || !row.video_id ? `/u/${row.actor?.username ?? ""}` : `/v/${row.video_id}`;
   const unread = !row.read_at;
+
+  // Sa propre vidéo vient d'être publiée: l'inviter à la partager.
+  if (row.kind === "published" && row.video_id) {
+    return (
+      <Link href={`/v/${row.video_id}`} className="flex items-center gap-3 rounded-2xl border border-gold/40 bg-gold/10 p-3">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gold text-xl">🎬</span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold">Ta vidéo est en ligne ! 🔥</p>
+          <p className="text-xs text-text/80">Partage-la sur WhatsApp pour maximiser tes vues · il y a {timeAgo(row.created_at)}</p>
+        </div>
+        <span className="shrink-0 rounded-full bg-[#25d366] px-3 py-1.5 text-xs font-bold text-white">Partager</span>
+      </Link>
+    );
+  }
 
   if (row.kind === "gift" && row.gift) {
     return (
