@@ -14,6 +14,7 @@ import { previewUrl, thumbnailUrl } from "@/lib/media";
 import { Avatar } from "@/components/Avatar";
 import { BottomNav } from "@/components/BottomNav";
 import { FollowButton } from "@/components/profile/FollowButton";
+import { SignOutButton } from "@/components/profile/SignOutButton";
 import { PlayIcon, WalletIcon } from "@/components/icons";
 import { SupportButton } from "@/components/support/SupportButton";
 import { fcfa } from "@/lib/gifts";
@@ -184,6 +185,8 @@ export default async function ProfilePage({ params }: PageProps<"/u/[username]">
               <Link href="/gagner" className="hover:text-text">💰 Gagner</Link>
               <span className="mx-2">·</span>
               <Link href="/mission" className="hover:text-text">Notre mission</Link>
+              <span className="mx-2">·</span>
+              <SignOutButton compact />
             </p>
           )}
           {viewerIsVip && (

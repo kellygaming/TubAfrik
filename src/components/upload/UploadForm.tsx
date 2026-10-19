@@ -7,6 +7,7 @@ import { GAMES } from "@/lib/games";
 import { CATEGORIES, isCategorySlug } from "@/lib/categories";
 import { CheckIcon, UploadIcon } from "../icons";
 import { TipsCarousel } from "./TipsCarousel";
+import { ShareButtons } from "../share/ShareButtons";
 
 const MAX_BYTES = 300 * 1024 * 1024;
 const MAX_SECONDS = 180;
@@ -175,14 +176,28 @@ export function UploadForm({
   }
 
   if (phase.step === "done") {
+    const url = `${typeof window === "undefined" ? "" : window.location.origin}/v/${phase.id}`;
+    const text = `Regarde ma nouvelle vidéo sur TubAfrik 🔥${caption.trim() ? ` « ${caption.trim().slice(0, 80)} »` : ""}`;
     return (
-      <div className="flex flex-col items-center py-16 text-center">
+      <div className="flex flex-col items-center py-10 text-center">
         <span className="grid h-20 w-20 place-items-center rounded-full bg-ok/15 text-ok">
           <CheckIcon width={40} height={40} />
         </span>
         <h2 className="mt-5 text-2xl font-bold">C&apos;est en ligne ! 🔥</h2>
-        <p className="mt-2 text-muted">Partage-la sur WhatsApp pour lancer tes premières vues.</p>
-        <div className="mt-8 flex w-full flex-col gap-3">
+
+        {/* Le message: le lien de la vidéo, et l'invitation à la partager. */}
+        <div className="mt-6 w-full rounded-2xl border border-gold/40 bg-gold/10 p-4 text-left">
+          <p className="text-sm font-semibold">📣 Partage ta vidéo maintenant</p>
+          <p className="mt-1 text-sm text-text/85">
+            Les premières heures comptent : envoie-la sur ton statut WhatsApp et dans tes groupes pour maximiser tes vues.
+          </p>
+          <p className="mt-3 truncate rounded-xl bg-black/30 px-3 py-2 font-mono text-xs text-text/80">{url}</p>
+          <div className="mt-4">
+            <ShareButtons url={url} text={text} />
+          </div>
+        </div>
+
+        <div className="mt-6 flex w-full flex-col gap-3">
           <Link href={`/v/${phase.id}`} className="bg-brand rounded-full py-3 font-semibold text-bg">Voir ma vidéo</Link>
           <button onClick={reset} className="rounded-full border border-line py-3 text-sm">Publier une autre vidéo</button>
         </div>
